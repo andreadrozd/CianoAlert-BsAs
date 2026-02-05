@@ -766,7 +766,7 @@ function fnc_project_color(values, context) {
 
 
 
-function exp_CianoSemSat_20260205_2rule0_eval_expression(context) {
+function exp_AlertaCiano_1rule0_eval_expression(context) {
     // Alerta = 1 AND Dif = 0
 
     var feature = context.feature;
@@ -779,7 +779,7 @@ function exp_CianoSemSat_20260205_2rule0_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule1_eval_expression(context) {
+function exp_AlertaCiano_1rule1_eval_expression(context) {
     // Alerta = 1 AND Dif = 1
 
     var feature = context.feature;
@@ -792,7 +792,7 @@ function exp_CianoSemSat_20260205_2rule1_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule2_eval_expression(context) {
+function exp_AlertaCiano_1rule2_eval_expression(context) {
     // Alerta = 2 AND Dif = 0
 
     var feature = context.feature;
@@ -805,7 +805,7 @@ function exp_CianoSemSat_20260205_2rule2_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule3_eval_expression(context) {
+function exp_AlertaCiano_1rule3_eval_expression(context) {
     // Alerta = 1 AND Dif = - 1
 
     var feature = context.feature;
@@ -818,7 +818,7 @@ function exp_CianoSemSat_20260205_2rule3_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule4_eval_expression(context) {
+function exp_AlertaCiano_1rule4_eval_expression(context) {
     // Alerta = 2 AND Dif = 1
 
     var feature = context.feature;
@@ -831,7 +831,7 @@ function exp_CianoSemSat_20260205_2rule4_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule5_eval_expression(context) {
+function exp_AlertaCiano_1rule5_eval_expression(context) {
     // Alerta = 3 AND Dif = 0
 
     var feature = context.feature;
@@ -844,7 +844,7 @@ function exp_CianoSemSat_20260205_2rule5_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule6_eval_expression(context) {
+function exp_AlertaCiano_1rule6_eval_expression(context) {
     // Alerta = 3 AND Dif = - 1
 
     var feature = context.feature;
@@ -857,7 +857,7 @@ function exp_CianoSemSat_20260205_2rule6_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule7_eval_expression(context) {
+function exp_AlertaCiano_1rule7_eval_expression(context) {
     // Alerta = 3 AND Dif = 1
 
     var feature = context.feature;
@@ -870,7 +870,7 @@ function exp_CianoSemSat_20260205_2rule7_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule8_eval_expression(context) {
+function exp_AlertaCiano_1rule8_eval_expression(context) {
     // Alerta = 4 AND Dif = 0
 
     var feature = context.feature;
@@ -883,7 +883,7 @@ function exp_CianoSemSat_20260205_2rule8_eval_expression(context) {
 }
 
 
-function exp_CianoSemSat_20260205_2rule9_eval_expression(context) {
+function exp_AlertaCiano_1rule9_eval_expression(context) {
     // Alerta = 4 AND Dif = - 1
 
     var feature = context.feature;
