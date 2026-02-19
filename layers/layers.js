@@ -3,6 +3,7 @@ var wms_layers = [];
 
         var lyr_GoogleHybrid_0 = new ol.layer.Tile({
             'title': 'Google Hybrid',
+            'type':'base',
             'opacity': 1.000000,
             
             
@@ -25,16 +26,16 @@ var lyr_AlertaCianobacterias20260218_1 = new ol.layer.Vector({
                 popuplayertitle: 'Alerta Cianobacterias 2026-02-18',
                 interactive: true,
     title: 'Alerta Cianobacterias 2026-02-18<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_0.png" /> Alerta verde estable<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_1.png" /> Alerta verde en aumento<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_2.png" /> Alerta amarillo estable<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_3.png" /> Alerta amarillo disminuyendo<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_4.png" /> Alerta amarillo en aumento<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_5.png" /> Alerta naranja estable<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_6.png" /> Alerta naranja disminuyendo<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_7.png" /> Alerta naranja en aumento<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_8.png" /> Alerta roja estable<br />\
-    <img src="styles/legend/AlertaCianobacterias20260218_1_9.png" /> Alerta roja en disminusión<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_0.png" /> Alerta verde estable 🟰<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_1.png" /> Alerta verde en aumento ⬆️<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_2.png" /> Alerta amarilla estable 🟰<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_3.png" /> Alerta amarilla en disminución ⬇️<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_4.png" /> Alerta amarilla en aumento ⬆️<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_5.png" /> Alerta naranja estable 🟰<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_6.png" /> Alerta naranja en disminución ⬇️<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_7.png" /> Alerta naranja en aumento ⬆️<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_8.png" /> Alerta roja estable 🟰<br />\
+    <img src="styles/legend/AlertaCianobacterias20260218_1_9.png" /> Alerta roja en disminusión ⬇️<br />\
     <img src="styles/legend/AlertaCianobacterias20260218_1_10.png" /> <br />' });
 
 lyr_GoogleHybrid_0.setVisible(true);lyr_AlertaCianobacterias20260218_1.setVisible(true);
