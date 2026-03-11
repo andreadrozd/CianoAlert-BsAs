@@ -147,7 +147,7 @@ var featureOverlay = new ol.layer.Vector({
     updateWhileInteracting: true // optional, for instant visual feedback
 });
 
-var doHighlight = false;
+var doHighlight = true;
 var doHover = true;
 
 function createPopupField(currentFeature, currentFeatureKeys, layer) {
@@ -1132,7 +1132,7 @@ let measuring = false;
 //layer search
 
 var searchLayer = new SearchLayer({
-    layer: lyr_AlertaCianobacterias20260304_1,
+    layer: lyr_AlertaCianobacterias20260311_1,
     colName: 'CodPto',
     zoom: 10,
     collapsed: true,
