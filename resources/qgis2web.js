@@ -4,12 +4,12 @@ var map = new ol.Map({
     renderer: 'canvas',
     layers: layersList,
     view: new ol.View({
-         maxZoom: 28, minZoom: 1
+        extent: [-7177290.595416, -4731802.562724, -6167071.581111, -3941005.983633], maxZoom: 28, minZoom: 1
     })
 });
 
 //initial view - epsg:3857 coordinates if not "Match project CRS"
-map.getView().fit([-7021093.769079, -4712269.698473, -6340943.765176, -3959008.770607], map.getSize());
+map.getView().fit([-7177290.595416, -4731802.562724, -6167071.581111, -3941005.983633], map.getSize());
 
 //full zooms only
 map.getView().setProperties({constrainResolution: true});
@@ -1132,8 +1132,8 @@ let measuring = false;
 //layer search
 
 var searchLayer = new SearchLayer({
-    layer: lyr_AlertaCianobacterias20260311_1,
-    colName: 'CodPto',
+    layer: lyr_BsAs_Deptos_IDERA_wgs84_1,
+    colName: 'nam',
     zoom: 10,
     collapsed: true,
     map: map,
