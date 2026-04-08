@@ -766,7 +766,7 @@ function fnc_project_color(values, context) {
 
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule0_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule0_eval_expression(context) {
     // Alerta = 1 AND Dif = 0
 
     var feature = context.feature;
@@ -779,7 +779,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule0_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule1_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule1_eval_expression(context) {
     // Alerta = 1 AND Dif = 1
 
     var feature = context.feature;
@@ -792,7 +792,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule1_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule2_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule2_eval_expression(context) {
     // Alerta = 2 AND Dif = 0
 
     var feature = context.feature;
@@ -805,7 +805,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule2_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule3_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule3_eval_expression(context) {
     // Alerta = 2 AND Dif = - 1
 
     var feature = context.feature;
@@ -818,7 +818,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule3_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule4_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule4_eval_expression(context) {
     // Alerta = 2 AND Dif = 1
 
     var feature = context.feature;
@@ -831,7 +831,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule4_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule5_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule5_eval_expression(context) {
     // Alerta = 3 AND Dif = 0
 
     var feature = context.feature;
@@ -844,7 +844,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule5_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule6_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule6_eval_expression(context) {
     // Alerta = 3 AND Dif = - 1
 
     var feature = context.feature;
@@ -857,7 +857,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule6_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule7_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule7_eval_expression(context) {
     // Alerta = 3 AND Dif = 1
 
     var feature = context.feature;
@@ -870,7 +870,7 @@ function exp_AlertaCianobacterias20260331ADA_2rule7_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule8_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule8_eval_expression(context) {
     // Alerta = 4 AND Dif = 0
 
     var feature = context.feature;
@@ -883,7 +883,137 @@ function exp_AlertaCianobacterias20260331ADA_2rule8_eval_expression(context) {
 }
 
 
-function exp_AlertaCianobacterias20260331ADA_2rule9_eval_expression(context) {
+function exp_AlertaCianobacterias20260408ADA_2rule9_eval_expression(context) {
+    // Alerta = 4 AND Dif = - 1
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 4) && (feature.get('Dif')  == - 1 ));
+    } else {
+        return ((feature.get('Alerta')  == 4) && (feature.get('Dif')  == - 1 ));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule0_eval_expression(context) {
+    // Alerta = 1 AND Dif = 0
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 1) && (feature.get('Dif')  == 0));
+    } else {
+        return ((feature.get('Alerta')  == 1) && (feature.get('Dif')  == 0));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule1_eval_expression(context) {
+    // Alerta = 1 AND Dif = 1
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 1) && (feature.get('Dif')  == 1));
+    } else {
+        return ((feature.get('Alerta')  == 1) && (feature.get('Dif')  == 1));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule2_eval_expression(context) {
+    // Alerta = 2 AND Dif = 0
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 2) && (feature.get('Dif')  == 0));
+    } else {
+        return ((feature.get('Alerta')  == 2) && (feature.get('Dif')  == 0));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule3_eval_expression(context) {
+    // Alerta = 2 AND Dif = - 1
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 2) && (feature.get('Dif')  == - 1 ));
+    } else {
+        return ((feature.get('Alerta')  == 2) && (feature.get('Dif')  == - 1 ));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule4_eval_expression(context) {
+    // Alerta = 2 AND Dif = 1
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 2) && (feature.get('Dif')  == 1));
+    } else {
+        return ((feature.get('Alerta')  == 2) && (feature.get('Dif')  == 1));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule5_eval_expression(context) {
+    // Alerta = 3 AND Dif = 0
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 3) && (feature.get('Dif')  == 0));
+    } else {
+        return ((feature.get('Alerta')  == 3) && (feature.get('Dif')  == 0));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule6_eval_expression(context) {
+    // Alerta = 3 AND Dif = - 1
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 3) && (feature.get('Dif')  == - 1 ));
+    } else {
+        return ((feature.get('Alerta')  == 3) && (feature.get('Dif')  == - 1 ));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule7_eval_expression(context) {
+    // Alerta = 3 AND Dif = 1
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 3) && (feature.get('Dif')  == 1));
+    } else {
+        return ((feature.get('Alerta')  == 3) && (feature.get('Dif')  == 1));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule8_eval_expression(context) {
+    // Alerta = 4 AND Dif = 0
+
+    var feature = context.feature;
+    
+    if (feature.properties) {
+        return ((feature.get('Alerta')  == 4) && (feature.get('Dif')  == 0));
+    } else {
+        return ((feature.get('Alerta')  == 4) && (feature.get('Dif')  == 0));
+    }
+}
+
+
+function exp_AlertaCianobacterias20260408SRH_3rule9_eval_expression(context) {
     // Alerta = 4 AND Dif = - 1
 
     var feature = context.feature;
