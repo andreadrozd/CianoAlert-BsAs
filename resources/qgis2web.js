@@ -4,12 +4,12 @@ var map = new ol.Map({
     renderer: 'canvas',
     layers: layersList,
     view: new ol.View({
-        extent: [-7658901.569395, -5232830.642623, -5270105.963918, -3462343.917748], maxZoom: 28, minZoom: 1
+        extent: [-7516166.057899, -5329286.942220, -5127370.452370, -3544067.932782], maxZoom: 28, minZoom: 1
     })
 });
 
 //initial view - epsg:3857 coordinates if not "Match project CRS"
-map.getView().fit([-7658901.569395, -5232830.642623, -5270105.963918, -3462343.917748], map.getSize());
+map.getView().fit([-7516166.057899, -5329286.942220, -5127370.452370, -3544067.932782], map.getSize());
 
 //full zooms only
 map.getView().setProperties({constrainResolution: true});
@@ -1132,8 +1132,8 @@ let measuring = false;
 //layer search
 
 var searchLayer = new SearchLayer({
-    layer: lyr_MunicipiosdeBuenosAires_1,
-    colName: 'nam',
+    layer: lyr_AlertaCianobacterias20260415SRH_3,
+    colName: 'PUNTO',
     zoom: 10,
     collapsed: true,
     map: map,
