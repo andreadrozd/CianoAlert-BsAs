@@ -4,12 +4,12 @@ var map = new ol.Map({
     renderer: 'canvas',
     layers: layersList,
     view: new ol.View({
-        extent: [-7516166.057899, -5329286.942220, -5127370.452370, -3544067.932782], maxZoom: 28, minZoom: 1
+        extent: [-7327478.561911, -5165775.630950, -4938682.956382, -3405344.481178], maxZoom: 28, minZoom: 1
     })
 });
 
 //initial view - epsg:3857 coordinates if not "Match project CRS"
-map.getView().fit([-7516166.057899, -5329286.942220, -5127370.452370, -3544067.932782], map.getSize());
+map.getView().fit([-7327478.561911, -5165775.630950, -4938682.956382, -3405344.481178], map.getSize());
 
 //full zooms only
 map.getView().setProperties({constrainResolution: true});
@@ -1132,7 +1132,7 @@ let measuring = false;
 //layer search
 
 var searchLayer = new SearchLayer({
-    layer: lyr_AlertaCianobacterias20260415SRH_3,
+    layer: lyr_AlertaCianobacterias20260416SRH_3,
     colName: 'PUNTO',
     zoom: 10,
     collapsed: true,
