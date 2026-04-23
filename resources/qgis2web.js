@@ -4,12 +4,12 @@ var map = new ol.Map({
     renderer: 'canvas',
     layers: layersList,
     view: new ol.View({
-        extent: [-8188649.722239, -5585326.613403, -4922211.843027, -3157040.711554], maxZoom: 28, minZoom: 1
+        extent: [-8457436.380211, -5857926.787301, -4892324.259682, -3171085.476011], maxZoom: 28, minZoom: 1
     })
 });
 
 //initial view - epsg:3857 coordinates if not "Match project CRS"
-map.getView().fit([-8188649.722239, -5585326.613403, -4922211.843027, -3157040.711554], map.getSize());
+map.getView().fit([-8457436.380211, -5857926.787301, -4892324.259682, -3171085.476011], map.getSize());
 
 //full zooms only
 map.getView().setProperties({constrainResolution: true});
