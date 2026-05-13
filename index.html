@@ -196,6 +196,12 @@
             font-size: 22px;
             font-weight: bold;
         }
+        .scorecard-subtitle {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-top: 4px;
+            font-weight: 500;
+        }
         #rightPanel {
             position: absolute;
             top: 0;
@@ -524,43 +530,38 @@
         function updateDashboard() {
             const visibleFeatures = getVisibleFeatures();
             
-            const counts = {
-                'red_orange_stable': 0,
-                'red_orange_decrease': 0,
-                'yellow_stable': 0,
-                'yellow_increase': 0,
-                'yellow_decrease': 0,
-                'green_stable': 0,
-                'green_increase': 0
+            // Contadores por nivel de alerta y variación
+            const alertCounts = {
+                1: { stable: 0, increase: 0, decrease: 0, total: 0 },
+                2: { stable: 0, increase: 0, decrease: 0, total: 0 },
+                3: { stable: 0, increase: 0, decrease: 0, total: 0 },
+                4: { stable: 0, increase: 0, decrease: 0, total: 0 }
             };
 
             visibleFeatures.forEach(({ feature }) => {
                 const alerta = feature.properties.Alerta || 1;
                 const dif = feature.properties.Dif || 0;
-
-                if ((alerta === 3 || alerta === 4) && (dif === 0 || dif === 1)) counts['red_orange_stable']++;
-                if ((alerta === 3 || alerta === 4) && dif === -1) counts['red_orange_decrease']++;
-                if (alerta === 2 && dif === 0) counts['yellow_stable']++;
-                if (alerta === 2 && dif === 1) counts['yellow_increase']++;
-                if (alerta === 2 && dif === -1) counts['yellow_decrease']++;
-                if (alerta === 1 && dif === 0) counts['green_stable']++;
-                if (alerta === 1 && dif === 1) counts['green_increase']++;
+                
+                // Actualizar contadores detallados por alerta
+                alertCounts[alerta].total++;
+                if (dif === 0) alertCounts[alerta].stable++;
+                if (dif === 1) alertCounts[alerta].increase++;
+                if (dif === -1) alertCounts[alerta].decrease++;
             });
 
             const scorecards = [
-                { title: 'Banderas sanitarias estables', value: counts['red_orange_stable'], class: 'red' },
-                { title: 'Alertas sanitarias en descenso', value: counts['red_orange_decrease'], class: 'orange' },
-                { title: 'Alertas amarillas estables', value: counts['yellow_stable'], class: 'yellow' },
-                { title: 'Alertas amarillas en aumento', value: counts['yellow_increase'], class: 'yellow-dark' },
-                { title: 'Alertas amarillas en disminución', value: counts['yellow_decrease'], class: 'yellow-light' },
-                { title: 'Sin alertas estables', value: counts['green_stable'], class: 'green-dark' },
-                { title: 'Sin alertas en aumento', value: counts['green_increase'], class: 'green' }
+                { title: 'Alerta 4 (Rojo)', value: alertCounts[4].total, class: 'red', subtitle: `Est: ${alertCounts[4].stable} | ↑: ${alertCounts[4].increase} | ↓: ${alertCounts[4].decrease}` },
+                { title: 'Alerta 3 (Naranja)', value: alertCounts[3].total, class: 'orange', subtitle: `Est: ${alertCounts[3].stable} | ↑: ${alertCounts[3].increase} | ↓: ${alertCounts[3].decrease}` },
+                { title: 'Alerta 2 (Amarillo)', value: alertCounts[2].total, class: 'yellow-dark', subtitle: `Est: ${alertCounts[2].stable} | ↑: ${alertCounts[2].increase} | ↓: ${alertCounts[2].decrease}` },
+                { title: 'Alerta 1 (Verde)', value: alertCounts[1].total, class: 'green-dark', subtitle: `Est: ${alertCounts[1].stable} | ↑: ${alertCounts[1].increase} | ↓: ${alertCounts[1].decrease}` },
+                { title: 'Total puntos visibles', value: visibleFeatures.length, class: 'green' }
             ];
 
             const dashboardHtml = scorecards.map(card => `
                 <div class="scorecard ${card.class}">
                     <div class="scorecard-title">${card.title}</div>
                     <div class="scorecard-value">${card.value}</div>
+                    ${card.subtitle ? `<div class="scorecard-subtitle">${card.subtitle}</div>` : ''}
                 </div>
             `).join('');
 
@@ -585,7 +586,13 @@
         Promise.all(layerNames.map(loadGeoJsonLayer)).then(() => {
             updateChart();
             updateDashboard();
-            map.on('zoomend panend', () => {
+            // Actualizar dinámicamente con zoom
+            map.on('zoomend', () => {
+                updateChart();
+                updateDashboard();
+            });
+            // Actualizar dinámicamente con movimiento
+            map.on('moveend', () => {
                 updateChart();
                 updateDashboard();
             });
