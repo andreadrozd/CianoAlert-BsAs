@@ -482,13 +482,20 @@
 
         function getVisibleFeatures() {
             const visibleFeatures = [];
+            const bounds = map.getBounds();
+            
             Object.keys(geoJsonLayers).forEach(layerName => {
                 const toggleId = layerToggles[layerName];
                 if (!document.getElementById(toggleId).checked) return;
                 
                 geoJsonLayers[layerName].data.features.forEach(feature => {
                     if (feature.geometry && feature.geometry.coordinates) {
-                        visibleFeatures.push({ feature: feature, layer: layerName });
+                        const lat = feature.geometry.coordinates[1];
+                        const lng = feature.geometry.coordinates[0];
+                        // Verificar si el punto está dentro de los bounds visibles
+                        if (bounds.contains(L.latLng(lat, lng))) {
+                            visibleFeatures.push({ feature: feature, layer: layerName });
+                        }
                     }
                 });
             });
