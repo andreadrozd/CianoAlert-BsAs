@@ -16,17 +16,89 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
+            overflow: hidden;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            grid-template-rows: 55% 45%;
+            height: 100vh;
+            gap: 0;
+        }
+        /* RESPONSIVO: CELULAR */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                gap: 0;
+            }
+            #mapContainer {
+                height: 50vh !important;
+                position: relative !important;
+                top: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                left: auto !important;
+                order: 2;
+            }
+            #chartContainer {
+                height: auto !important;
+                position: relative !important;
+                bottom: auto !important;
+                right: auto !important;
+                left: auto !important;
+                order: 3;
+                min-height: 300px;
+            }
+            #rightPanel {
+                position: relative !important;
+                top: auto !important;
+                right: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                bottom: auto !important;
+                border-left: none !important;
+                border-bottom: 2px solid #ddd;
+                max-height: 250px;
+                order: 1;
+            }
+            #chartAndDashboard {
+                flex-direction: column !important;
+            }
+            #pieChart {
+                flex: 0 0 200px !important;
+                min-width: 100% !important;
+            }
+            #dashboardContainer {
+                grid-template-columns: 1fr !important;
+                padding-right: 0 !important;
+            }
+        }
+        /* RESPONSIVO: TABLETA */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .container {
+                grid-template-columns: 1fr 250px;
+            }
+            #rightPanel {
+                width: 250px !important;
+            }
+        }
+        /* COMPUTADORA */
+        @media (min-width: 1025px) {
+            .container {
+                grid-template-columns: 1fr 280px;
+            }
         }
         #mapContainer {
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
+            right: 280px;
+            bottom: 45%;
             z-index: 1;
         }
         #chartContainer {
-            position: fixed;
+            position: absolute;
             bottom: 0;
             left: 0;
             right: 280px;
@@ -37,14 +109,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: height 0.3s ease;
-            z-index: 3;
-        }
-        #chartContainer.minimized {
-            height: 40px;
-        }
-        #chartContainer.minimized #chartContentWrapper {
-            display: none !important;
+            z-index: 1;
         }
         #chartContainerHeader {
             background: #34495e;
@@ -65,7 +130,6 @@
             flex: 1;
             overflow: auto;
             padding: 15px;
-            transition: opacity 0.3s ease;
         }
         #chartContentWrapper.hidden {
             display: none;
@@ -94,6 +158,10 @@
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             font-size: 11px;
+            transition: transform 0.2s;
+        }
+        .scorecard:hover {
+            transform: translateY(-2px);
         }
         .scorecard.red {
             background: #c0392b;
@@ -129,7 +197,7 @@
             font-weight: bold;
         }
         #rightPanel {
-            position: fixed;
+            position: absolute;
             top: 0;
             right: 0;
             width: 280px;
@@ -138,52 +206,18 @@
             border-left: 2px solid #ddd;
             padding: 15px;
             overflow-y: auto;
-            z-index: 4;
-            transition: right 0.3s ease;
-        }
-        #rightPanel.minimized {
-            right: -265px;
-        }
-        #rightPanelTab {
-            position: fixed;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 15px;
-            height: 50px;
-            background: #34495e;
-            border: 2px solid #ddd;
-            border-right: none;
-            border-radius: 8px 0 0 8px;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14px;
-            z-index: 4;
-        }
-        #rightPanelTab.visible {
-            display: flex;
-        }
-        #rightPanelTab:hover {
-            background: #2c3e50;
+            z-index: 2;
         }
         .panel-title {
             font-size: 16px;
             font-weight: bold;
-            color: white;
+            color: #333;
             background: #2c3e50;
-            padding: 10px 15px;
+            color: white;
+            padding: 10px;
             margin: -15px -15px 15px -15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-        }
-        .panel-title:hover {
-            background: #2a3749;
+            text-align: center;
+            border-radius: 4px 4px 0 0;
         }
         .collapsible-section {
             margin-bottom: 20px;
@@ -199,6 +233,7 @@
             align-items: center;
             font-weight: 600;
             user-select: none;
+            font-size: 13px;
         }
         .section-header:hover {
             background: #2c3e50;
@@ -209,6 +244,7 @@
             border-radius: 0 0 4px 4px;
             max-height: 500px;
             overflow-y: auto;
+            transition: all 0.3s ease;
         }
         .section-content.hidden {
             max-height: 0;
@@ -244,6 +280,14 @@
             margin-right: 8px;
             cursor: pointer;
         }
+        .layer-stats {
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #34495e;
+        }
     </style>
 </head>
 <body>
@@ -251,7 +295,7 @@
     <div id="chartContainer">
         <div id="chartContainerHeader" onclick="toggleChartPanel()">
             <span><b>Distribución de Alertas</b></span>
-            <span class="toggle-btn">↓</span>
+            <span class="toggle-btn">−</span>
         </div>
         <div id="chartContentWrapper">
             <div id="chartAndDashboard">
@@ -260,12 +304,8 @@
             </div>
         </div>
     </div>
-    <div id="rightPanelTab" onclick="toggleRightPanel()">‹</div>
     <div id="rightPanel">
-        <div class="panel-title" onclick="toggleRightPanel()">
-            <span>Alertas 2026-05-06</span>
-            <span class="toggle-btn">←</span>
-        </div>
+        <div class="panel-title">Alertas 2026-05-06</div>
         
         <!-- Capas Activas -->
         <div class="collapsible-section">
@@ -280,12 +320,14 @@
                         SRH
                     </label>
                 </div>
+                <div id="srh-stats" class="layer-stats">Puntos: 0</div>
                 <div class="checkbox-group">
                     <label>
                         <input type="checkbox" id="ada-toggle" checked onchange="updateMap()">
                         ADA
                     </label>
                 </div>
+                <div id="ada-stats" class="layer-stats">Puntos: 0</div>
             </div>
         </div>
         
@@ -333,6 +375,7 @@
         const layerNames = ['mi-capa', 'mi-capa-ada'];
         const layerDisplayNames = { 'mi-capa': 'SRH', 'mi-capa-ada': 'ADA' };
         const layerToggles = { 'mi-capa': 'srh-toggle', 'mi-capa-ada': 'ada-toggle' };
+        const layerStats = { 'mi-capa': 'srh-stats', 'mi-capa-ada': 'ada-stats' };
 
         // Fields to display for each layer
         const layerFields = {
@@ -362,7 +405,7 @@
             const symbol = getSymbol(dif);
 
             const html = `
-                <div style="font-size: 24px; color: ${color}; text-shadow: 0 0 3px white;">${symbol}</div>
+                <div style="font-size: 24px; color: ${color}; text-shadow: 0 0 3px white; cursor: pointer;">${symbol}</div>
             `;
 
             const marker = L.marker(latlng, {
@@ -375,11 +418,12 @@
 
             // Popup with specific fields
             const fields = layerFields[layerName];
-            let popupContent = `<div style="font-size: 12px; font-weight: bold; margin-bottom: 8px;">${layerDisplayNames[layerName]}</div>`;
+            let popupContent = `<div style="font-size: 13px;"><strong>${layerDisplayNames[layerName]}</strong><br>`;
             fields.forEach(field => {
                 const value = feature.properties[field] || '-';
                 popupContent += `<div><strong>${field}:</strong> ${value}</div>`;
             });
+            popupContent += '</div>';
 
             marker.bindPopup(popupContent);
             return marker;
@@ -390,14 +434,28 @@
                 .then(res => res.json())
                 .then(data => {
                     const featureGroup = L.featureGroup();
+                    const totalPoints = data.features.length;
+                    
                     data.features.forEach(feature => {
-                        const marker = createMarker(feature, 
-                            [feature.geometry.coordinates[1], feature.geometry.coordinates[0]], 
-                            layerName);
-                        featureGroup.addLayer(marker);
+                        if (feature.geometry && feature.geometry.coordinates) {
+                            const marker = createMarker(feature, 
+                                [feature.geometry.coordinates[1], feature.geometry.coordinates[0]], 
+                                layerName);
+                            featureGroup.addLayer(marker);
+                        }
                     });
+                    
                     geoJsonLayers[layerName] = { data: data, featureGroup: featureGroup };
                     featureGroup.addTo(map);
+                    
+                    // Update stats
+                    const statsId = layerStats[layerName];
+                    document.getElementById(statsId).innerHTML = `Puntos: ${totalPoints}`;
+                })
+                .catch(err => {
+                    console.warn(`No se pudo cargar ${layerName}.geojson:`, err);
+                    const statsId = layerStats[layerName];
+                    document.getElementById(statsId).innerHTML = `Puntos: 0 (archivo no encontrado)`;
                 });
         }
 
@@ -423,8 +481,7 @@
                 if (!document.getElementById(toggleId).checked) return;
                 
                 geoJsonLayers[layerName].data.features.forEach(feature => {
-                    const latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
-                    if (map.getBounds().contains(latlng)) {
+                    if (feature.geometry && feature.geometry.coordinates) {
                         visibleFeatures.push({ feature: feature, layer: layerName });
                     }
                 });
@@ -518,19 +575,10 @@
         }
 
         function toggleChartPanel() {
-            const container = document.getElementById('chartContainer');
+            const wrapper = document.getElementById('chartContentWrapper');
             const toggle = document.querySelector('#chartContainerHeader .toggle-btn');
-            container.classList.toggle('minimized');
-            toggle.textContent = container.classList.contains('minimized') ? '↑' : '↓';
-        }
-
-        function toggleRightPanel() {
-            const panel = document.getElementById('rightPanel');
-            const tab = document.getElementById('rightPanelTab');
-            const toggle = document.querySelector('.panel-title .toggle-btn');
-            panel.classList.toggle('minimized');
-            tab.classList.toggle('visible');
-            toggle.textContent = panel.classList.contains('minimized') ? '→' : '←';
+            wrapper.classList.toggle('hidden');
+            toggle.textContent = wrapper.classList.contains('hidden') ? '+' : '−';
         }
 
         // Load layers
@@ -542,32 +590,15 @@
                 updateDashboard();
             });
         });
+
+        // Resize handler for responsive
+        window.addEventListener('resize', () => {
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+        });
     </script>
 <script>window.parent.postMessage({ action: "ready" }, "*"); 
- 
-window.console = new Proxy(console, {
-  get(target, prop) {
-    if (['log', 'warn', 'error'].includes(prop)) {
-      return new Proxy(target[prop], {
-        apply(fn, thisArg, args) {
-          fn.apply(thisArg, args);
-          window.parent.postMessage({ action: 'console', 
-            type: prop, 
-            args: args.map((arg) => {
-              try {
-                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
-              } catch (e) {
-                return arg;
-              }
-            }) 
-          }, '*');
-        }
-      });
-    }
-    return target[prop];
-  }
-});
-</script><script>window.parent.postMessage({ action: "ready" }, "*"); 
  
 window.console = new Proxy(console, {
   get(target, prop) {
