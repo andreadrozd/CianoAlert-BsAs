@@ -21,12 +21,12 @@
             position: absolute;
             top: 0;
             left: 0;
-            right: 280px;
-            bottom: 45%;
+            right: 0;
+            bottom: 0;
             z-index: 1;
         }
         #chartContainer {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 280px;
@@ -37,6 +37,14 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            transition: height 0.3s ease;
+            z-index: 3;
+        }
+        #chartContainer.minimized {
+            height: 40px;
+        }
+        #chartContainer.minimized #chartContentWrapper {
+            display: none !important;
         }
         #chartContainerHeader {
             background: #34495e;
@@ -57,6 +65,7 @@
             flex: 1;
             overflow: auto;
             padding: 15px;
+            transition: opacity 0.3s ease;
         }
         #chartContentWrapper.hidden {
             display: none;
@@ -120,7 +129,7 @@
             font-weight: bold;
         }
         #rightPanel {
-            position: absolute;
+            position: fixed;
             top: 0;
             right: 0;
             width: 280px;
@@ -129,17 +138,52 @@
             border-left: 2px solid #ddd;
             padding: 15px;
             overflow-y: auto;
-            z-index: 2;
+            z-index: 4;
+            transition: right 0.3s ease;
+        }
+        #rightPanel.minimized {
+            right: -265px;
+        }
+        #rightPanelTab {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 50px;
+            background: #34495e;
+            border: 2px solid #ddd;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            z-index: 4;
+        }
+        #rightPanelTab.visible {
+            display: flex;
+        }
+        #rightPanelTab:hover {
+            background: #2c3e50;
         }
         .panel-title {
             font-size: 16px;
             font-weight: bold;
-            color: #333;
-            background: #2c3e50;
             color: white;
-            padding: 10px;
+            background: #2c3e50;
+            padding: 10px 15px;
             margin: -15px -15px 15px -15px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .panel-title:hover {
+            background: #2a3749;
         }
         .collapsible-section {
             margin-bottom: 20px;
@@ -207,7 +251,7 @@
     <div id="chartContainer">
         <div id="chartContainerHeader" onclick="toggleChartPanel()">
             <span><b>Distribución de Alertas</b></span>
-            <span class="toggle-btn">−</span>
+            <span class="toggle-btn">↓</span>
         </div>
         <div id="chartContentWrapper">
             <div id="chartAndDashboard">
@@ -216,8 +260,12 @@
             </div>
         </div>
     </div>
+    <div id="rightPanelTab" onclick="toggleRightPanel()">‹</div>
     <div id="rightPanel">
-        <div class="panel-title">Alertas 2026-05-06</div>
+        <div class="panel-title" onclick="toggleRightPanel()">
+            <span>Alertas 2026-05-06</span>
+            <span class="toggle-btn">←</span>
+        </div>
         
         <!-- Capas Activas -->
         <div class="collapsible-section">
@@ -470,10 +518,19 @@
         }
 
         function toggleChartPanel() {
-            const wrapper = document.getElementById('chartContentWrapper');
+            const container = document.getElementById('chartContainer');
             const toggle = document.querySelector('#chartContainerHeader .toggle-btn');
-            wrapper.classList.toggle('hidden');
-            toggle.textContent = wrapper.classList.contains('hidden') ? '+' : '−';
+            container.classList.toggle('minimized');
+            toggle.textContent = container.classList.contains('minimized') ? '↑' : '↓';
+        }
+
+        function toggleRightPanel() {
+            const panel = document.getElementById('rightPanel');
+            const tab = document.getElementById('rightPanelTab');
+            const toggle = document.querySelector('.panel-title .toggle-btn');
+            panel.classList.toggle('minimized');
+            tab.classList.toggle('visible');
+            toggle.textContent = panel.classList.contains('minimized') ? '→' : '←';
         }
 
         // Load layers
@@ -487,6 +544,30 @@
         });
     </script>
 <script>window.parent.postMessage({ action: "ready" }, "*"); 
+ 
+window.console = new Proxy(console, {
+  get(target, prop) {
+    if (['log', 'warn', 'error'].includes(prop)) {
+      return new Proxy(target[prop], {
+        apply(fn, thisArg, args) {
+          fn.apply(thisArg, args);
+          window.parent.postMessage({ action: 'console', 
+            type: prop, 
+            args: args.map((arg) => {
+              try {
+                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
+              } catch (e) {
+                return arg;
+              }
+            }) 
+          }, '*');
+        }
+      });
+    }
+    return target[prop];
+  }
+});
+</script><script>window.parent.postMessage({ action: "ready" }, "*"); 
  
 window.console = new Proxy(console, {
   get(target, prop) {
