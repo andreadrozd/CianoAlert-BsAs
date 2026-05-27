@@ -27,10 +27,15 @@
         }
         /* RESPONSIVO: CELULAR */
         @media (max-width: 768px) {
+            body {
+                overflow: auto !important;
+            }
             .container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr auto;
                 gap: 0;
+                height: auto !important;
+                min-height: 100vh;
             }
             #mapContainer {
                 height: 50vh !important;
@@ -48,7 +53,13 @@
                 right: auto !important;
                 left: auto !important;
                 order: 3;
-                min-height: 300px;
+                min-height: auto;
+                overflow: visible !important;
+            }
+            #chartContentWrapper {
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
             }
             #rightPanel {
                 position: relative !important;
@@ -64,6 +75,7 @@
             }
             #chartAndDashboard {
                 flex-direction: column !important;
+                height: auto !important;
             }
             #pieChart {
                 flex: 0 0 200px !important;
