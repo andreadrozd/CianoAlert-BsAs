@@ -16,7 +16,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
-            overflow: auto;
+            overflow: hidden;
         }
         .container {
             display: grid;
@@ -186,6 +186,10 @@
         .scorecard.green {
             background: #52be80;
         }
+        .scorecard.blue-pastel {
+            background: #aed6f1;
+            color: #1a3a5c;
+        }
         .scorecard-title {
             font-size: 11px;
             font-weight: 600;
@@ -311,7 +315,7 @@
         </div>
     </div>
     <div id="rightPanel">
-        <div class="panel-title">Alertas 2026-05-21</div>
+        <div class="panel-title">Alertas 2026-05-06</div>
         
         <!-- Capas Activas -->
         <div class="collapsible-section">
@@ -424,10 +428,64 @@
 
             // Popup with specific fields
             const fields = layerFields[layerName];
-            let popupContent = `<div style="font-size: 13px;"><strong>${layerDisplayNames[layerName]}</strong><br>`;
+            const layerLabel = layerDisplayNames[layerName];
+
+            // Nombre del punto: para SRH es PUNTO, para ADA es Nombre
+            const pointNameField = layerName === 'mi-capa' ? 'PUNTO' : 'Nombre';
+            const pointName = feature.properties[pointNameField] || '-';
+
+            let popupContent = `
+                <div style="font-size: 13px; min-width: 180px;">
+                    <div style="
+                        text-align: center;
+                        font-size: 18px;
+                        font-weight: 800;
+                        letter-spacing: 2px;
+                        color: #2c3e50;
+                        background: #ecf0f1;
+                        border-radius: 6px 6px 0 0;
+                        padding: 6px 10px 2px;
+                        margin-bottom: 2px;
+                        text-transform: uppercase;
+                    ">${layerLabel}</div>
+                    <div style="
+                        text-align: center;
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #1a5276;
+                        background: #e8f4fc;
+                        border-radius: 0;
+                        padding: 4px 10px 8px;
+                        margin-bottom: 8px;
+                        border-bottom: 2px solid #e0e0e0;
+                    ">${pointName}</div>
+            `;
             fields.forEach(field => {
-                const value = feature.properties[field] || '-';
-                popupContent += `<div><strong>${field}:</strong> ${value}</div>`;
+                if (field === pointNameField) return;
+                let value = feature.properties[field] || '-';
+
+                if (field === 'info' && value !== '-') {
+                    const alertStyles = {
+                        'alerta verde':    { bg: '#1e7e34', color: '#ffffff' },
+                        'alerta amarillo': { bg: '#d4a017', color: '#ffffff' },
+                        'alerta naranja':  { bg: '#d35400', color: '#ffffff' },
+                        'alerta roja':     { bg: '#c0392b', color: '#ffffff' }
+                    };
+                    const commaIdx = value.indexOf(',');
+                    let prefix = commaIdx !== -1 ? value.substring(0, commaIdx) : value;
+                    let rest   = commaIdx !== -1 ? value.substring(commaIdx) : '';
+                    const prefixLower = prefix.toLowerCase().trim();
+                    let matched = null;
+                    for (const key of Object.keys(alertStyles)) {
+                        if (prefixLower.includes(key)) { matched = key; break; }
+                    }
+                    if (matched) {
+                        const s = alertStyles[matched];
+                        value = `<span style="display:inline-block;background:${s.bg};color:${s.color};font-weight:700;padding:1px 7px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${prefix}</span>${rest}`;
+                    }
+                }
+
+                popupContent += `<div style="padding: 2px 4px;"><strong>${field}:</strong> ${value}</div>`;
             });
             popupContent += '</div>';
 
@@ -561,7 +619,7 @@
                 { title: 'Alerta 3 (Naranja)', value: alertCounts[3].total, class: 'orange', subtitle: `Est: ${alertCounts[3].stable} | ↑: ${alertCounts[3].increase} | ↓: ${alertCounts[3].decrease}` },
                 { title: 'Alerta 2 (Amarillo)', value: alertCounts[2].total, class: 'yellow-dark', subtitle: `Est: ${alertCounts[2].stable} | ↑: ${alertCounts[2].increase} | ↓: ${alertCounts[2].decrease}` },
                 { title: 'Alerta 1 (Verde)', value: alertCounts[1].total, class: 'green-dark', subtitle: `Est: ${alertCounts[1].stable} | ↑: ${alertCounts[1].increase} | ↓: ${alertCounts[1].decrease}` },
-                { title: 'Total puntos visibles', value: visibleFeatures.length, class: 'green' }
+                { title: 'Total puntos visibles', value: visibleFeatures.length, class: 'blue-pastel' }
             ];
 
             const dashboardHtml = scorecards.map(card => `
@@ -613,30 +671,6 @@
         });
     </script>
 <script>window.parent.postMessage({ action: "ready" }, "*"); 
- 
-window.console = new Proxy(console, {
-  get(target, prop) {
-    if (['log', 'warn', 'error'].includes(prop)) {
-      return new Proxy(target[prop], {
-        apply(fn, thisArg, args) {
-          fn.apply(thisArg, args);
-          window.parent.postMessage({ action: 'console', 
-            type: prop, 
-            args: args.map((arg) => {
-              try {
-                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
-              } catch (e) {
-                return arg;
-              }
-            }) 
-          }, '*');
-        }
-      });
-    }
-    return target[prop];
-  }
-});
-</script><script>window.parent.postMessage({ action: "ready" }, "*"); 
  
 window.console = new Proxy(console, {
   get(target, prop) {
