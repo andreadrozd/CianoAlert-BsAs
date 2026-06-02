@@ -310,6 +310,83 @@
             border-radius: 4px;
             border-left: 3px solid #34495e;
         }
+        /* Controles personalizados: geolocalizador y busqueda de sitios */
+        .custom-ctrl a {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 30px;
+            text-align: center;
+            display: block;
+        }
+        .site-search-ctrl {
+            width: 260px;
+            max-width: 72vw;
+        }
+        .ss-box {
+            display: flex;
+            background: #fff;
+            border: 2px solid #34495e;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+        }
+        .ss-box input {
+            flex: 1;
+            border: none;
+            padding: 8px 10px;
+            font-size: 13px;
+            outline: none;
+            min-width: 0;
+        }
+        .ss-box button {
+            border: none;
+            background: #34495e;
+            color: #fff;
+            cursor: pointer;
+            padding: 0 12px;
+            font-size: 14px;
+        }
+        .ss-box button:hover { background: #2c3e50; }
+        .ss-results {
+            margin-top: 4px;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            max-height: 260px;
+            overflow-y: auto;
+            display: none;
+        }
+        .ss-results .ss-header {
+            background: #2c3e50;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+        }
+        .ss-item {
+            padding: 7px 10px;
+            font-size: 12.5px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            line-height: 1.3;
+        }
+        .ss-item:hover { background: #ecf0f1; }
+        .ss-item .ss-sub { font-size: 11px; color: #666; }
+        .ss-item .ss-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            border-radius: 3px;
+            padding: 1px 6px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .ss-empty { padding: 8px 10px; font-size: 12px; color: #888; }
     </style>
 </head>
 <body>
@@ -360,27 +437,16 @@
                 <span class="toggle-btn">−</span>
             </div>
             <div class="section-content">
-                <div><strong>Nivel de Alerta</strong></div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: #28a745;"></span>
-                    <span>Alerta 1 (Verde)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: #ffc107;"></span>
-                    <span>Alerta 2 (Amarillo)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: #ff9800;"></span>
-                    <span>Alerta 3 (Naranja)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: #dc3545;"></span>
-                    <span>Alerta 4 (Rojo)</span>
-                </div>
-                <div style="margin-top: 12px;"><strong>Variación</strong></div>
-                <div class="legend-item">● Círculo = Estable</div>
-                <div class="legend-item">▲ Flecha arriba = En aumento</div>
-                <div class="legend-item">▼ Flecha abajo = En disminución</div>
+                <div><strong>Nivel de alerta</strong></div>
+                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#248c2b"/></svg>Alerta 1 (Verde)</div>
+                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#f6fc3b"/><text x="15" y="20.5" text-anchor="middle" font-size="15" font-weight="bold" font-family="Arial, sans-serif" fill="#222222">!</text></svg>Alerta 2 (Amarillo)</div>
+                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#f6683b"/><path d="M15 8.5 V21.5 M8.5 15 H21.5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>Alerta 3 (Naranja)</div>
+                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#c31000"/><path d="M15 8.5 V21.5 M8.5 15 H21.5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>Alerta 4 (Rojo)</div>
+                <div style="margin-top: 14px;"><strong>Tendencias</strong></div>
+                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#7f8c8d"/></svg>Estable</div>
+                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><path d="M15 3 L24 15 L18 15 L18 27 L12 27 L12 15 L6 15 Z" fill="#7f8c8d"/></svg>En aumento</div>
+                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><path d="M15 27 L24 15 L18 15 L18 3 L12 3 L12 15 L6 15 Z" fill="#7f8c8d"/></svg>En disminución</div>
+                <div style="margin-top: 6px; font-size: 11px; color: #666;">El color y el símbolo indican el nivel de alerta.</div>
             </div>
         </div>
     </div>
@@ -401,33 +467,59 @@
 
         // Fields to display for each layer
         const layerFields = {
-            'mi-capa': ['MUNICIPIO', 'PUNTO', 'S2 Fecha', 'S3 Fecha', 'info'],
-            'mi-capa-ada': ['Nombre', 'Laguna', 'S2 Fecha', 'S3 Fecha', 'info']
+            'mi-capa': ['MUNICIPIO', 'PUNTO', 'S2 Fecha', 'S3 Fecha', 'info', 'Acciones'],
+            'mi-capa-ada': ['Nombre', 'Laguna', 'S2 Fecha', 'S3 Fecha', 'info', 'Acciones']
         };
 
         // Color mapping for alerts
         const alertColors = {
-            1: '#28a745',
-            2: '#ffc107',
-            3: '#ff9800',
-            4: '#dc3545'
+            1: '#248c2b',
+            2: '#f6fc3b',
+            3: '#f6683b',
+            4: '#c31000'
         };
 
-        function getSymbol(dif) {
-            if (dif === 0) return '●';
-            if (dif === 1) return '▲';
-            if (dif === -1) return '▼';
-            return '●';
+        // Devuelve el SVG del marcador segun nivel de alerta (color) y variacion (Dif)
+        function getMarkerSvg(alerta, dif, color) {
+            const stroke = '#ffffff';
+            const open = '<svg viewBox="0 0 30 30" width="30" height="30">';
+            const close = '</svg>';
+
+            // En aumento -> flecha hacia arriba, con el color del nivel
+            if (dif === 1) {
+                return open +
+                    '<path d="M15 3 L24 15 L18 15 L18 27 L12 27 L12 15 L6 15 Z" fill="' + color + '"/>' +
+                    close;
+            }
+            // En disminucion -> flecha hacia abajo, con el color del nivel
+            if (dif === -1) {
+                return open +
+                    '<path d="M15 27 L24 15 L18 15 L18 3 L12 3 L12 15 L6 15 Z" fill="' + color + '"/>' +
+                    close;
+            }
+
+            // Estable (dif === 0) -> circulo + simbolo segun nivel
+            let inner = '';
+            if (alerta === 4 || alerta === 3) {
+                // Rojo / Naranja: cruz blanca en el medio
+                inner = '<path d="M15 8.5 V21.5 M8.5 15 H21.5" stroke="' + stroke + '" stroke-width="3" stroke-linecap="round"/>';
+            } else if (alerta === 2) {
+                // Amarillo: signo de admiracion
+                inner = '<text x="15" y="20.5" text-anchor="middle" font-size="15" font-weight="bold" font-family="Arial, sans-serif" fill="#222222">!</text>';
+            }
+            // Verde (alerta 1): solo el circulo, sin simbolo
+            return open +
+                '<circle cx="15" cy="15" r="11" fill="' + color + '"/>' +
+                inner +
+                close;
         }
 
         function createMarker(feature, latlng, layerName) {
             const alerta = feature.properties.Alerta || 1;
             const dif = feature.properties.Dif || 0;
-            const color = alertColors[alerta] || '#28a745';
-            const symbol = getSymbol(dif);
-
+            const color = alertColors[alerta] || '#248c2b';
             const html = `
-                <div style="font-size: 24px; color: ${color}; text-shadow: 0 0 3px white; cursor: pointer;">${symbol}</div>
+                <div style="cursor: pointer; line-height: 0; filter: drop-shadow(0 0 2px rgba(255,255,255,0.95));">${getMarkerSvg(alerta, dif, color)}</div>
             `;
 
             const marker = L.marker(latlng, {
@@ -497,7 +589,11 @@
                     }
                 }
 
-                popupContent += `<div style="padding: 2px 4px;"><strong>${field}:</strong> ${value}</div>`;
+                if (field === 'Acciones') {
+                    popupContent += `<div style="padding: 4px 4px 2px; font-size: 14px;"><strong>${field}:</strong> ${value}</div>`;
+                } else {
+                    popupContent += `<div style="padding: 2px 4px;"><strong>${field}:</strong> ${value}</div>`;
+                }
             });
             popupContent += '</div>';
 
@@ -514,10 +610,25 @@
                     
                     data.features.forEach(feature => {
                         if (feature.geometry && feature.geometry.coordinates) {
-                            const marker = createMarker(feature, 
-                                [feature.geometry.coordinates[1], feature.geometry.coordinates[0]], 
-                                layerName);
+                            const latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
+                            const marker = createMarker(feature, latlng, layerName);
                             featureGroup.addLayer(marker);
+
+                            // Indexar el punto para la busqueda de sitios
+                            const layerLabel = layerDisplayNames[layerName];
+                            const nameField = layerName === 'mi-capa' ? 'PUNTO' : 'Nombre';
+                            const subField  = layerName === 'mi-capa' ? 'MUNICIPIO' : 'Laguna';
+                            const name = feature.properties[nameField] || '(sin nombre)';
+                            const sub  = feature.properties[subField] || '';
+                            searchIndex.push({
+                                marker: marker,
+                                layerName: layerName,
+                                layerLabel: layerLabel,
+                                name: name,
+                                sub: sub,
+                                latlng: latlng,
+                                search: (name + ' ' + sub + ' ' + layerLabel).toLowerCase()
+                            });
                         }
                     });
                     
@@ -582,7 +693,7 @@
 
             const labels = ['Alerta 1', 'Alerta 2', 'Alerta 3', 'Alerta 4'];
             const values = [alertCounts[1], alertCounts[2], alertCounts[3], alertCounts[4]];
-            const colors = ['#28a745', '#ffc107', '#ff9800', '#dc3545'];
+            const colors = ['#248c2b', '#f6fc3b', '#f6683b', '#c31000'];
 
             const data = [{
                 labels: labels,
@@ -657,6 +768,177 @@
             const toggle = document.querySelector('#chartContainerHeader .toggle-btn');
             wrapper.classList.toggle('hidden');
             toggle.textContent = wrapper.classList.contains('hidden') ? '+' : '−';
+        }
+
+        // ============================================================
+        //  HERRAMIENTAS: 1) Geolocalizador  2) Busqueda de sitios (OSM)
+        // ============================================================
+        let searchIndex = [];
+        let userMarker = null;
+        let userCircle = null;
+        let osmSearchTimer = null;
+        let osmResultMarker = null;
+
+        // ---- 1) Geolocalizador ----
+        const geoCtrl = L.control({ position: 'topleft' });
+        geoCtrl.onAdd = function () {
+            const c = L.DomUtil.create('div', 'leaflet-bar custom-ctrl');
+            c.innerHTML = '<a href="#" title="Ir a mi ubicacion" role="button">&#128205;</a>';
+            L.DomEvent.disableClickPropagation(c);
+            L.DomEvent.on(c.querySelector('a'), 'click', function (e) {
+                L.DomEvent.stop(e);
+                locateUser();
+            });
+            return c;
+        };
+        geoCtrl.addTo(map);
+
+        function locateUser() {
+            map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true });
+        }
+
+        map.on('locationfound', function (e) {
+            if (userMarker) map.removeLayer(userMarker);
+            if (userCircle) map.removeLayer(userCircle);
+            userCircle = L.circle(e.latlng, {
+                radius: e.accuracy,
+                color: '#2c3e50', fillColor: '#3498db', fillOpacity: 0.15, weight: 1
+            }).addTo(map);
+            userMarker = L.marker(e.latlng, {
+                icon: L.divIcon({
+                    html: '<div style="font-size:26px; line-height:26px; text-shadow:0 0 3px #fff;">&#128205;</div>',
+                    iconSize: [26, 26], iconAnchor: [13, 26], className: ''
+                })
+            }).addTo(map).bindPopup('Estas aqui (&plusmn;' + Math.round(e.accuracy) + ' m)').openPopup();
+        });
+
+        map.on('locationerror', function (e) {
+            alert('No se pudo obtener tu ubicacion.\n' + e.message +
+                  '\n\n(La geolocalizacion requiere permiso del navegador y, en general, conexion segura HTTPS.)');
+        });
+
+        // ---- 2) Busqueda de sitios (capas propias + lugares OSM) ----
+        const searchCtrl = L.control({ position: 'topright' });
+        searchCtrl.onAdd = function () {
+            const c = L.DomUtil.create('div', 'site-search-ctrl');
+            c.innerHTML =
+                '<div class="ss-box">' +
+                '  <input id="siteSearchInput" type="text" placeholder="Buscar sitio o lugar (OSM)..." autocomplete="off">' +
+                '  <button id="siteSearchBtn" title="Buscar en OSM">&#128269;</button>' +
+                '</div>' +
+                '<div id="siteSearchResults" class="ss-results"></div>';
+            L.DomEvent.disableClickPropagation(c);
+            L.DomEvent.disableScrollPropagation(c);
+            return c;
+        };
+        searchCtrl.addTo(map);
+
+        document.getElementById('siteSearchInput').addEventListener('input', onSearchInput);
+        document.getElementById('siteSearchInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); runOsmSearch(this.value.trim()); }
+        });
+        document.getElementById('siteSearchBtn').addEventListener('click', function () {
+            runOsmSearch(document.getElementById('siteSearchInput').value.trim());
+        });
+
+        function onSearchInput() {
+            const q = document.getElementById('siteSearchInput').value.trim();
+            if (!q) { hideResults(); return; }
+            const local = searchLocal(q);
+            renderResults(local, null);            // resultados de las capas, al instante
+            clearTimeout(osmSearchTimer);
+            osmSearchTimer = setTimeout(function () { runOsmSearch(q, local); }, 450);
+        }
+
+        function searchLocal(q) {
+            const ql = q.toLowerCase();
+            return searchIndex
+                .filter(function (s) { return s.search.indexOf(ql) !== -1; })
+                .slice(0, 8);
+        }
+
+        function runOsmSearch(q, localCached) {
+            if (!q) return;
+            const local = localCached || searchLocal(q);
+            const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=ar&q=' +
+                        encodeURIComponent(q);
+            fetch(url, { headers: { 'Accept-Language': 'es' } })
+                .then(function (r) { return r.json(); })
+                .then(function (osm) { renderResults(local, osm); })
+                .catch(function () { renderResults(local, []); });
+        }
+
+        function renderResults(local, osm) {
+            const box = document.getElementById('siteSearchResults');
+            let html = '';
+
+            if (local && local.length) {
+                html += '<div class="ss-header">Sitios monitoreados</div>';
+                local.forEach(function (s, i) {
+                    const color = s.layerName === 'mi-capa' ? '#2980b9' : '#16a085';
+                    html += '<div class="ss-item" data-type="local" data-idx="' + i + '">' +
+                            '<span class="ss-badge" style="background:' + color + '">' + s.layerLabel + '</span>' +
+                            s.name +
+                            (s.sub ? '<div class="ss-sub">' + s.sub + '</div>' : '') +
+                            '</div>';
+                });
+            }
+
+            if (osm) {
+                if (osm.length) {
+                    html += '<div class="ss-header">Lugares (OSM)</div>';
+                    osm.forEach(function (o, i) {
+                        html += '<div class="ss-item" data-type="osm" data-idx="' + i + '">' +
+                                '<span class="ss-badge" style="background:#7f8c8d">OSM</span>' +
+                                o.display_name +
+                                '</div>';
+                    });
+                } else if (!local || !local.length) {
+                    html += '<div class="ss-empty">Sin resultados.</div>';
+                }
+            } else if (!local || !local.length) {
+                html += '<div class="ss-empty">Escribi para buscar...</div>';
+            }
+
+            box.innerHTML = html;
+            box.style.display = 'block';
+            box._local = local || [];
+            box._osm = osm || [];
+
+            box.querySelectorAll('.ss-item').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    const idx = parseInt(el.getAttribute('data-idx'), 10);
+                    if (el.getAttribute('data-type') === 'local') {
+                        goToLocal(box._local[idx]);
+                    } else {
+                        goToOsm(box._osm[idx]);
+                    }
+                    hideResults();
+                });
+            });
+        }
+
+        function hideResults() {
+            const box = document.getElementById('siteSearchResults');
+            box.style.display = 'none';
+            box.innerHTML = '';
+        }
+
+        function goToLocal(s) {
+            if (!s) return;
+            const toggle = document.getElementById(layerToggles[s.layerName]);
+            if (toggle && !toggle.checked) { toggle.checked = true; updateMap(); }
+            map.flyTo(s.latlng, 13, { duration: 0.8 });
+            map.once('moveend', function () { s.marker.openPopup(); });
+        }
+
+        function goToOsm(o) {
+            if (!o) return;
+            const latlng = [parseFloat(o.lat), parseFloat(o.lon)];
+            if (osmResultMarker) map.removeLayer(osmResultMarker);
+            map.flyTo(latlng, 13, { duration: 0.8 });
+            osmResultMarker = L.marker(latlng).addTo(map)
+                .bindPopup('<b>' + o.display_name + '</b>').openPopup();
         }
 
         // Load layers
