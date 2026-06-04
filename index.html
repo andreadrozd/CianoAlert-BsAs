@@ -133,7 +133,7 @@
             align-items: center;
             font-weight: 600;
             user-select: none;
-            font-size: 14px;
+            font-size: 16px;
         }
         #chartContainerHeader:hover {
             background: #2c3e50;
@@ -169,20 +169,21 @@
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-size: 11px;
+            font-size: 13px;
             transition: transform 0.2s;
         }
         .scorecard:hover {
             transform: translateY(-2px);
         }
         .scorecard.red {
-            background: #c0392b;
+            background: #c31000;
         }
         .scorecard.orange {
-            background: #e67e22;
+            background: #f6683b;
         }
         .scorecard.yellow-dark {
-            background: #d4a017;
+            background: #f6fc3b;
+            color: #000;
         }
         .scorecard.yellow {
             background: #f1c40f;
@@ -193,7 +194,7 @@
             color: #333;
         }
         .scorecard.green-dark {
-            background: #16a085;
+            background: #248c2b;
         }
         .scorecard.green {
             background: #52be80;
@@ -203,17 +204,17 @@
             color: #1a3a5c;
         }
         .scorecard-title {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
             margin-bottom: 6px;
             opacity: 0.95;
         }
         .scorecard-value {
-            font-size: 22px;
+            font-size: 26px;
             font-weight: bold;
         }
         .scorecard-subtitle {
-            font-size: 10px;
+            font-size: 12px;
             opacity: 0.8;
             margin-top: 4px;
             font-weight: 500;
@@ -231,7 +232,7 @@
             z-index: 2;
         }
         .panel-title {
-            font-size: 16px;
+            font-size: 19px;
             font-weight: bold;
             color: #333;
             background: #2c3e50;
@@ -255,7 +256,7 @@
             align-items: center;
             font-weight: 600;
             user-select: none;
-            font-size: 13px;
+            font-size: 15px;
         }
         .section-header:hover {
             background: #2c3e50;
@@ -274,12 +275,12 @@
             padding: 0;
         }
         .toggle-btn {
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
         }
         .legend-item {
             margin-bottom: 8px;
-            font-size: 12px;
+            font-size: 14px;
         }
         .legend-color {
             display: inline-block;
@@ -295,7 +296,7 @@
         .checkbox-group label {
             display: flex;
             align-items: center;
-            font-size: 13px;
+            font-size: 15px;
             cursor: pointer;
         }
         .checkbox-group input {
@@ -303,7 +304,7 @@
             cursor: pointer;
         }
         .layer-stats {
-            font-size: 12px;
+            font-size: 14px;
             margin-top: 8px;
             padding: 8px;
             background: white;
@@ -334,7 +335,7 @@
             flex: 1;
             border: none;
             padding: 8px 10px;
-            font-size: 13px;
+            font-size: 15px;
             outline: none;
             min-width: 0;
         }
@@ -344,7 +345,7 @@
             color: #fff;
             cursor: pointer;
             padding: 0 12px;
-            font-size: 14px;
+            font-size: 16px;
         }
         .ss-box button:hover { background: #2c3e50; }
         .ss-results {
@@ -359,7 +360,7 @@
         .ss-results .ss-header {
             background: #2c3e50;
             color: #fff;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 700;
             padding: 5px 10px;
             text-transform: uppercase;
@@ -369,16 +370,16 @@
         }
         .ss-item {
             padding: 7px 10px;
-            font-size: 12.5px;
+            font-size: 14px;
             cursor: pointer;
             border-bottom: 1px solid #eee;
             line-height: 1.3;
         }
         .ss-item:hover { background: #ecf0f1; }
-        .ss-item .ss-sub { font-size: 11px; color: #666; }
+        .ss-item .ss-sub { font-size: 13px; color: #666; }
         .ss-item .ss-badge {
             display: inline-block;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700;
             color: #fff;
             border-radius: 3px;
@@ -386,7 +387,7 @@
             margin-right: 6px;
             vertical-align: middle;
         }
-        .ss-empty { padding: 8px 10px; font-size: 12px; color: #888; }
+        .ss-empty { padding: 8px 10px; font-size: 14px; color: #888; }
     </style>
 </head>
 <body>
@@ -404,7 +405,7 @@
         </div>
     </div>
     <div id="rightPanel">
-        <div class="panel-title">Alertas 2026-06-03</div>
+        <div class="panel-title">Alertas 2026-05-06</div>
         
         <!-- Capas Activas -->
         <div class="collapsible-section">
@@ -446,7 +447,7 @@
                 <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#7f8c8d"/></svg>Estable</div>
                 <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><path d="M15 3 L24 15 L18 15 L18 27 L12 27 L12 15 L6 15 Z" fill="#7f8c8d"/></svg>En aumento</div>
                 <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><path d="M15 27 L24 15 L18 15 L18 3 L12 3 L12 15 L6 15 Z" fill="#7f8c8d"/></svg>En disminución</div>
-                <div style="margin-top: 6px; font-size: 11px; color: #666;">El color y el símbolo indican el nivel de alerta.</div>
+                <div style="margin-top: 6px; font-size: 13px; color: #666;">El color y el símbolo indican el nivel de alerta.</div>
             </div>
         </div>
     </div>
@@ -539,10 +540,10 @@
             const pointName = feature.properties[pointNameField] || '-';
 
             let popupContent = `
-                <div style="font-size: 13px; min-width: 180px;">
+                <div style="font-size: 15px; min-width: 200px;">
                     <div style="
                         text-align: center;
-                        font-size: 18px;
+                        font-size: 20px;
                         font-weight: 800;
                         letter-spacing: 2px;
                         color: #2c3e50;
@@ -554,7 +555,7 @@
                     ">${layerLabel}</div>
                     <div style="
                         text-align: center;
-                        font-size: 15px;
+                        font-size: 17px;
                         font-weight: 700;
                         color: #1a5276;
                         background: #e8f4fc;
@@ -590,7 +591,7 @@
                 }
 
                 if (field === 'Acciones') {
-                    popupContent += `<div style="padding: 4px 4px 2px; font-size: 14px;"><strong>${field}:</strong> ${value}</div>`;
+                    popupContent += `<div style="padding: 4px 4px 2px; font-size: 16px;"><strong>${field}:</strong> ${value}</div>`;
                 } else {
                     popupContent += `<div style="padding: 2px 4px;"><strong>${field}:</strong> ${value}</div>`;
                 }
@@ -766,8 +767,24 @@
         function toggleChartPanel() {
             const wrapper = document.getElementById('chartContentWrapper');
             const toggle = document.querySelector('#chartContainerHeader .toggle-btn');
+            const container = document.getElementById('chartContainer');
+            const mapC = document.getElementById('mapContainer');
             wrapper.classList.toggle('hidden');
-            toggle.textContent = wrapper.classList.contains('hidden') ? '+' : '−';
+            const minimized = wrapper.classList.contains('hidden');
+            toggle.textContent = minimized ? '+' : '−';
+
+            // En desktop: al minimizar, el mapa ocupa el area liberada
+            if (window.matchMedia('(min-width: 769px)').matches) {
+                if (minimized) {
+                    const h = document.getElementById('chartContainerHeader').offsetHeight;
+                    container.style.height = h + 'px';
+                    mapC.style.bottom = h + 'px';
+                } else {
+                    container.style.height = '';
+                    mapC.style.bottom = '';
+                }
+            }
+            setTimeout(function () { map.invalidateSize(); }, 220);
         }
 
         // ============================================================
