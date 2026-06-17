@@ -6,7 +6,7 @@
     <title>Visor de Alertas - SRH y ADA</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -70,15 +70,15 @@
                 bottom: auto !important;
                 border-left: none !important;
                 border-bottom: 2px solid #ddd;
-                max-height: 250px;
+                overflow-y: visible !important;
                 order: 1;
             }
             #chartAndDashboard {
                 flex-direction: column !important;
                 height: auto !important;
             }
-            #pieChart {
-                flex: 0 0 200px !important;
+            #timeSeriesChart {
+                flex: 0 0 240px !important;
                 min-width: 100% !important;
             }
             #dashboardContainer {
@@ -133,7 +133,7 @@
             align-items: center;
             font-weight: 600;
             user-select: none;
-            font-size: 16px;
+            font-size: 14px;
         }
         #chartContainerHeader:hover {
             background: #2c3e50;
@@ -152,69 +152,49 @@
             width: 100%;
             height: 100%;
         }
-        #pieChart {
-            flex: 0 0 50%;
-            min-width: 350px;
+        #timeSeriesChart {
+            flex: 1 1 58%;
+            min-width: 380px;
         }
         #dashboardContainer {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            flex: 1 1 42%;
+            display: flex;
+            flex-direction: column;
             padding-right: 10px;
+            align-items: stretch;
         }
-        .scorecard {
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
+        #donutChart {
+            width: 100%;
+            height: 220px;
+        }
+        .alert-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        .alert-table th {
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-size: 13px;
-            transition: transform 0.2s;
-        }
-        .scorecard:hover {
-            transform: translateY(-2px);
-        }
-        .scorecard.red {
-            background: #c31000;
-        }
-        .scorecard.orange {
-            background: #f6683b;
-        }
-        .scorecard.yellow-dark {
-            background: #f6fc3b;
-            color: #000;
-        }
-        .scorecard.yellow {
-            background: #f1c40f;
-            color: #333;
-        }
-        .scorecard.yellow-light {
-            background: #fff9c4;
-            color: #333;
-        }
-        .scorecard.green-dark {
-            background: #248c2b;
-        }
-        .scorecard.green {
-            background: #52be80;
-        }
-        .scorecard.blue-pastel {
-            background: #aed6f1;
-            color: #1a3a5c;
-        }
-        .scorecard-title {
-            font-size: 13px;
+            padding: 4px 6px;
+            background: #f0f0f0;
             font-weight: 600;
-            margin-bottom: 6px;
-            opacity: 0.95;
+            color: #555;
+            border-bottom: 1px solid #ddd;
         }
-        .scorecard-value {
-            font-size: 26px;
-            font-weight: bold;
+        .alert-table th:first-child { text-align: left; }
+        .alert-table td {
+            padding: 4px 6px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .alert-table td:first-child { text-align: left; }
+        .alert-table tr:last-child td {
+            font-weight: 700;
+            border-top: 1px solid #ccc;
+            border-bottom: none;
         }
         .scorecard-subtitle {
-            font-size: 12px;
+            font-size: 10px;
             opacity: 0.8;
             margin-top: 4px;
             font-weight: 500;
@@ -232,7 +212,7 @@
             z-index: 2;
         }
         .panel-title {
-            font-size: 19px;
+            font-size: 16px;
             font-weight: bold;
             color: #333;
             background: #2c3e50;
@@ -256,7 +236,7 @@
             align-items: center;
             font-weight: 600;
             user-select: none;
-            font-size: 15px;
+            font-size: 13px;
         }
         .section-header:hover {
             background: #2c3e50;
@@ -275,12 +255,12 @@
             padding: 0;
         }
         .toggle-btn {
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
         }
         .legend-item {
             margin-bottom: 8px;
-            font-size: 14px;
+            font-size: 12px;
         }
         .legend-color {
             display: inline-block;
@@ -296,7 +276,7 @@
         .checkbox-group label {
             display: flex;
             align-items: center;
-            font-size: 15px;
+            font-size: 13px;
             cursor: pointer;
         }
         .checkbox-group input {
@@ -304,12 +284,16 @@
             cursor: pointer;
         }
         .layer-stats {
-            font-size: 14px;
+            font-size: 12px;
             margin-top: 8px;
             padding: 8px;
             background: white;
             border-radius: 4px;
             border-left: 3px solid #34495e;
+        }
+        .layer-stats .stats-date {
+            font-size: 10px;
+            color: #777;
         }
         /* Controles personalizados: geolocalizador y busqueda de sitios */
         .custom-ctrl a {
@@ -391,22 +375,23 @@
     </style>
 </head>
 <body>
+    <div class="container">
     <div id="mapContainer"></div>
     <div id="chartContainer">
         <div id="chartContainerHeader" onclick="toggleChartPanel()">
-            <span><b>Distribución de Alertas</b></span>
+            <span><b>Evolución de Alerta por punto</b></span>
             <span class="toggle-btn">−</span>
         </div>
         <div id="chartContentWrapper">
             <div id="chartAndDashboard">
-                <div id="pieChart"></div>
+                <div id="timeSeriesChart"></div>
                 <div id="dashboardContainer"></div>
             </div>
         </div>
     </div>
     <div id="rightPanel">
-        <div class="panel-title">Alertas 2026-05-06</div>
-        
+        <div class="panel-title" id="panelTitle">Alertas</div>
+
         <!-- Capas Activas -->
         <div class="collapsible-section">
             <div class="section-header" onclick="toggleSection(this)">
@@ -430,7 +415,7 @@
                 <div id="ada-stats" class="layer-stats">Puntos: 0</div>
             </div>
         </div>
-        
+
         <!-- Leyenda -->
         <div class="collapsible-section">
             <div class="section-header" onclick="toggleSection(this)">
@@ -438,18 +423,62 @@
                 <span class="toggle-btn">−</span>
             </div>
             <div class="section-content">
-                <div><strong>Nivel de alerta</strong></div>
-                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#248c2b"/></svg>Alerta 1 (Verde)</div>
-                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#f6fc3b"/><text x="15" y="20.5" text-anchor="middle" font-size="15" font-weight="bold" font-family="Arial, sans-serif" fill="#222222">!</text></svg>Alerta 2 (Amarillo)</div>
-                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#f6683b"/><path d="M15 8.5 V21.5 M8.5 15 H21.5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>Alerta 3 (Naranja)</div>
-                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#c31000"/><path d="M15 8.5 V21.5 M8.5 15 H21.5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>Alerta 4 (Rojo)</div>
-                <div style="margin-top: 14px;"><strong>Tendencias</strong></div>
-                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><circle cx="15" cy="15" r="11" fill="#7f8c8d"/></svg>Estable</div>
-                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><path d="M15 3 L24 15 L18 15 L18 27 L12 27 L12 15 L6 15 Z" fill="#7f8c8d"/></svg>En aumento</div>
-                <div class="legend-item"><svg viewBox="0 0 30 30" width="18" height="18" style="vertical-align:middle;margin-right:8px;"><path d="M15 27 L24 15 L18 15 L18 3 L12 3 L12 15 L6 15 Z" fill="#7f8c8d"/></svg>En disminución</div>
-                <div style="margin-top: 6px; font-size: 13px; color: #666;">El color y el símbolo indican el nivel de alerta.</div>
+                <div style="margin-bottom:8px;"><strong>Nivel de alerta</strong></div>
+                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:30px;color:#28a745;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
+                    </span>
+                    <span>Alerta 1 (Verde)</span>
+                </div>
+                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <span style="position:relative;width:32px;height:32px;display:inline-block;">
+                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;color:#ffe600;line-height:1;text-shadow:-1px -1px 0 #555,1px -1px 0 #555,-1px 1px 0 #555,1px 1px 0 #555;">●</span>
+                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);font-size:10px;color:#1a1a1a;line-height:1;font-weight:700;">!</span>
+                        </span>
+                    </span>
+                    <span>Alerta 2 (Amarillo)</span>
+                </div>
+                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <span style="position:relative;width:32px;height:32px;display:inline-block;">
+                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;color:#ff9800;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
+                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);font-size:10px;color:white;line-height:1;font-weight:700;">✕</span>
+                        </span>
+                    </span>
+                    <span>Alerta 3 (Naranja)</span>
+                </div>
+                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <span style="position:relative;width:32px;height:32px;display:inline-block;">
+                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;color:#dc3545;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
+                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);font-size:10px;color:white;line-height:1;font-weight:700;">✕</span>
+                        </span>
+                    </span>
+                    <span>Alerta 4 (Rojo)</span>
+                </div>
+                <div style="margin-top:12px;margin-bottom:8px;"><strong>Tendencias</strong></div>
+                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:30px;color:#555;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
+                    </span>
+                    <span>Estable</span>
+                </div>
+                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:28px;line-height:1;">⬆</span>
+                    </span>
+                    <span>En aumento</span>
+                </div>
+                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:28px;line-height:1;">⬇</span>
+                    </span>
+                    <span>En disminución</span>
+                </div>
             </div>
         </div>
+    </div>
     </div>
 
     <script>
@@ -460,359 +489,22 @@
             maxZoom: 19
         }).addTo(map);
 
-        let geoJsonLayers = {};
-        const layerNames = ['mi-capa', 'mi-capa-ada'];
-        const layerDisplayNames = { 'mi-capa': 'SRH', 'mi-capa-ada': 'ADA' };
-        const layerToggles = { 'mi-capa': 'srh-toggle', 'mi-capa-ada': 'ada-toggle' };
-        const layerStats = { 'mi-capa': 'srh-stats', 'mi-capa-ada': 'ada-stats' };
-
-        // Fields to display for each layer
-        const layerFields = {
-            'mi-capa': ['MUNICIPIO', 'PUNTO', 'S2 Fecha', 'S3 Fecha', 'info', 'Acciones'],
-            'mi-capa-ada': ['Nombre', 'Laguna', 'S2 Fecha', 'S3 Fecha', 'info', 'Acciones']
-        };
-
-        // Color mapping for alerts
-        const alertColors = {
-            1: '#248c2b',
-            2: '#f6fc3b',
-            3: '#f6683b',
-            4: '#c31000'
-        };
-
-        // Devuelve el SVG del marcador segun nivel de alerta (color) y variacion (Dif)
-        function getMarkerSvg(alerta, dif, color) {
-            const stroke = '#ffffff';
-            const open = '<svg viewBox="0 0 30 30" width="30" height="30">';
-            const close = '</svg>';
-
-            // En aumento -> flecha hacia arriba, con el color del nivel
-            if (dif === 1) {
-                return open +
-                    '<path d="M15 3 L24 15 L18 15 L18 27 L12 27 L12 15 L6 15 Z" fill="' + color + '"/>' +
-                    close;
-            }
-            // En disminucion -> flecha hacia abajo, con el color del nivel
-            if (dif === -1) {
-                return open +
-                    '<path d="M15 27 L24 15 L18 15 L18 3 L12 3 L12 15 L6 15 Z" fill="' + color + '"/>' +
-                    close;
-            }
-
-            // Estable (dif === 0) -> circulo + simbolo segun nivel
-            let inner = '';
-            if (alerta === 4 || alerta === 3) {
-                // Rojo / Naranja: cruz blanca en el medio
-                inner = '<path d="M15 8.5 V21.5 M8.5 15 H21.5" stroke="' + stroke + '" stroke-width="3" stroke-linecap="round"/>';
-            } else if (alerta === 2) {
-                // Amarillo: signo de admiracion
-                inner = '<text x="15" y="20.5" text-anchor="middle" font-size="15" font-weight="bold" font-family="Arial, sans-serif" fill="#222222">!</text>';
-            }
-            // Verde (alerta 1): solo el circulo, sin simbolo
-            return open +
-                '<circle cx="15" cy="15" r="11" fill="' + color + '"/>' +
-                inner +
-                close;
-        }
-
-        function createMarker(feature, latlng, layerName) {
-            const alerta = feature.properties.Alerta || 1;
-            const dif = feature.properties.Dif || 0;
-            const color = alertColors[alerta] || '#248c2b';
-            const html = `
-                <div style="cursor: pointer; line-height: 0; filter: drop-shadow(0 0 2px rgba(255,255,255,0.95));">${getMarkerSvg(alerta, dif, color)}</div>
-            `;
-
-            const marker = L.marker(latlng, {
-                icon: L.divIcon({
-                    html: html,
-                    iconSize: [30, 30],
-                    className: ''
-                })
-            });
-
-            // Popup with specific fields
-            const fields = layerFields[layerName];
-            const layerLabel = layerDisplayNames[layerName];
-
-            // Nombre del punto: para SRH es PUNTO, para ADA es Nombre
-            const pointNameField = layerName === 'mi-capa' ? 'PUNTO' : 'Nombre';
-            const pointName = feature.properties[pointNameField] || '-';
-
-            let popupContent = `
-                <div style="font-size: 15px; min-width: 200px;">
-                    <div style="
-                        text-align: center;
-                        font-size: 20px;
-                        font-weight: 800;
-                        letter-spacing: 2px;
-                        color: #2c3e50;
-                        background: #ecf0f1;
-                        border-radius: 6px 6px 0 0;
-                        padding: 6px 10px 2px;
-                        margin-bottom: 2px;
-                        text-transform: uppercase;
-                    ">${layerLabel}</div>
-                    <div style="
-                        text-align: center;
-                        font-size: 17px;
-                        font-weight: 700;
-                        color: #1a5276;
-                        background: #e8f4fc;
-                        border-radius: 0;
-                        padding: 4px 10px 8px;
-                        margin-bottom: 8px;
-                        border-bottom: 2px solid #e0e0e0;
-                    ">${pointName}</div>
-            `;
-            fields.forEach(field => {
-                if (field === pointNameField) return;
-                let value = feature.properties[field] || '-';
-
-                if (field === 'info' && value !== '-') {
-                    const alertStyles = {
-                        'alerta verde':    { bg: '#1e7e34', color: '#ffffff' },
-                        'alerta amarillo': { bg: '#d4a017', color: '#ffffff' },
-                        'alerta naranja':  { bg: '#d35400', color: '#ffffff' },
-                        'alerta roja':     { bg: '#c0392b', color: '#ffffff' }
-                    };
-                    const commaIdx = value.indexOf(',');
-                    let prefix = commaIdx !== -1 ? value.substring(0, commaIdx) : value;
-                    let rest   = commaIdx !== -1 ? value.substring(commaIdx) : '';
-                    const prefixLower = prefix.toLowerCase().trim();
-                    let matched = null;
-                    for (const key of Object.keys(alertStyles)) {
-                        if (prefixLower.includes(key)) { matched = key; break; }
-                    }
-                    if (matched) {
-                        const s = alertStyles[matched];
-                        value = `<span style="display:inline-block;background:${s.bg};color:${s.color};font-weight:700;padding:1px 7px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${prefix}</span>${rest}`;
-                    }
-                }
-
-                if (field === 'Acciones') {
-                    popupContent += `<div style="padding: 4px 4px 2px; font-size: 16px;"><strong>${field}:</strong> ${value}</div>`;
-                } else {
-                    popupContent += `<div style="padding: 2px 4px;"><strong>${field}:</strong> ${value}</div>`;
-                }
-            });
-            popupContent += '</div>';
-
-            marker.bindPopup(popupContent);
-            return marker;
-        }
-
-        function loadGeoJsonLayer(layerName) {
-            return fetch(`${layerName}.geojson`)
-                .then(res => res.json())
-                .then(data => {
-                    const featureGroup = L.featureGroup();
-                    const totalPoints = data.features.length;
-                    
-                    data.features.forEach(feature => {
-                        if (feature.geometry && feature.geometry.coordinates) {
-                            const latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
-                            const marker = createMarker(feature, latlng, layerName);
-                            featureGroup.addLayer(marker);
-
-                            // Indexar el punto para la busqueda de sitios
-                            const layerLabel = layerDisplayNames[layerName];
-                            const nameField = layerName === 'mi-capa' ? 'PUNTO' : 'Nombre';
-                            const subField  = layerName === 'mi-capa' ? 'MUNICIPIO' : 'Laguna';
-                            const name = feature.properties[nameField] || '(sin nombre)';
-                            const sub  = feature.properties[subField] || '';
-                            searchIndex.push({
-                                marker: marker,
-                                layerName: layerName,
-                                layerLabel: layerLabel,
-                                name: name,
-                                sub: sub,
-                                latlng: latlng,
-                                search: (name + ' ' + sub + ' ' + layerLabel).toLowerCase()
-                            });
-                        }
-                    });
-                    
-                    geoJsonLayers[layerName] = { data: data, featureGroup: featureGroup };
-                    featureGroup.addTo(map);
-                    
-                    // Update stats
-                    const statsId = layerStats[layerName];
-                    document.getElementById(statsId).innerHTML = `Puntos: ${totalPoints}`;
-                })
-                .catch(err => {
-                    console.warn(`No se pudo cargar ${layerName}.geojson:`, err);
-                    const statsId = layerStats[layerName];
-                    document.getElementById(statsId).innerHTML = `Puntos: 0 (archivo no encontrado)`;
-                });
-        }
-
-        function updateMap() {
-            // Update layer visibility
-            Object.keys(geoJsonLayers).forEach(layerName => {
-                const toggleId = layerToggles[layerName];
-                const isVisible = document.getElementById(toggleId).checked;
-                if (isVisible) {
-                    map.addLayer(geoJsonLayers[layerName].featureGroup);
-                } else {
-                    map.removeLayer(geoJsonLayers[layerName].featureGroup);
-                }
-            });
-            updateChart();
-            updateDashboard();
-        }
-
-        function getVisibleFeatures() {
-            const visibleFeatures = [];
-            const bounds = map.getBounds();
-            
-            Object.keys(geoJsonLayers).forEach(layerName => {
-                const toggleId = layerToggles[layerName];
-                if (!document.getElementById(toggleId).checked) return;
-                
-                geoJsonLayers[layerName].data.features.forEach(feature => {
-                    if (feature.geometry && feature.geometry.coordinates) {
-                        const lat = feature.geometry.coordinates[1];
-                        const lng = feature.geometry.coordinates[0];
-                        // Verificar si el punto está dentro de los bounds visibles
-                        if (bounds.contains(L.latLng(lat, lng))) {
-                            visibleFeatures.push({ feature: feature, layer: layerName });
-                        }
-                    }
-                });
-            });
-            return visibleFeatures;
-        }
-
-        function updateChart() {
-            const visibleFeatures = getVisibleFeatures();
-            const alertCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
-            visibleFeatures.forEach(({ feature }) => {
-                const alerta = feature.properties.Alerta || 1;
-                alertCounts[alerta]++;
-            });
-
-            const labels = ['Alerta 1', 'Alerta 2', 'Alerta 3', 'Alerta 4'];
-            const values = [alertCounts[1], alertCounts[2], alertCounts[3], alertCounts[4]];
-            const colors = ['#248c2b', '#f6fc3b', '#f6683b', '#c31000'];
-
-            const data = [{
-                labels: labels,
-                values: values,
-                type: 'pie',
-                hole: 0.4,
-                marker: { colors: colors },
-                textposition: 'inside',
-                textinfo: 'label+percent'
-            }];
-
-            const layout = {
-                title: { text: 'Distribución de Alertas', font: { size: 14 } },
-                showlegend: false,
-                margin: { l: 20, r: 20, t: 40, b: 20 },
-                font: { size: 11 }
-            };
-
-            Plotly.newPlot('pieChart', data, layout, { responsive: true });
-        }
-
-        function updateDashboard() {
-            const visibleFeatures = getVisibleFeatures();
-            
-            // Contadores por nivel de alerta y variación
-            const alertCounts = {
-                1: { stable: 0, increase: 0, decrease: 0, total: 0 },
-                2: { stable: 0, increase: 0, decrease: 0, total: 0 },
-                3: { stable: 0, increase: 0, decrease: 0, total: 0 },
-                4: { stable: 0, increase: 0, decrease: 0, total: 0 }
-            };
-
-            visibleFeatures.forEach(({ feature }) => {
-                const alerta = feature.properties.Alerta || 1;
-                const dif = feature.properties.Dif || 0;
-                
-                // Actualizar contadores detallados por alerta
-                alertCounts[alerta].total++;
-                if (dif === 0) alertCounts[alerta].stable++;
-                if (dif === 1) alertCounts[alerta].increase++;
-                if (dif === -1) alertCounts[alerta].decrease++;
-            });
-
-            const scorecards = [
-                { title: 'Alerta 4 (Rojo)', value: alertCounts[4].total, class: 'red', subtitle: `Est: ${alertCounts[4].stable} | ↑: ${alertCounts[4].increase} | ↓: ${alertCounts[4].decrease}` },
-                { title: 'Alerta 3 (Naranja)', value: alertCounts[3].total, class: 'orange', subtitle: `Est: ${alertCounts[3].stable} | ↑: ${alertCounts[3].increase} | ↓: ${alertCounts[3].decrease}` },
-                { title: 'Alerta 2 (Amarillo)', value: alertCounts[2].total, class: 'yellow-dark', subtitle: `Est: ${alertCounts[2].stable} | ↑: ${alertCounts[2].increase} | ↓: ${alertCounts[2].decrease}` },
-                { title: 'Alerta 1 (Verde)', value: alertCounts[1].total, class: 'green-dark', subtitle: `Est: ${alertCounts[1].stable} | ↑: ${alertCounts[1].increase} | ↓: ${alertCounts[1].decrease}` },
-                { title: 'Total puntos visibles', value: visibleFeatures.length, class: 'blue-pastel' }
-            ];
-
-            const dashboardHtml = scorecards.map(card => `
-                <div class="scorecard ${card.class}">
-                    <div class="scorecard-title">${card.title}</div>
-                    <div class="scorecard-value">${card.value}</div>
-                    ${card.subtitle ? `<div class="scorecard-subtitle">${card.subtitle}</div>` : ''}
-                </div>
-            `).join('');
-
-            document.getElementById('dashboardContainer').innerHTML = dashboardHtml;
-        }
-
-        function toggleSection(header) {
-            const content = header.nextElementSibling;
-            const toggle = header.querySelector('.toggle-btn');
-            content.classList.toggle('hidden');
-            toggle.textContent = content.classList.contains('hidden') ? '+' : '−';
-        }
-
-        function toggleChartPanel() {
-            const wrapper = document.getElementById('chartContentWrapper');
-            const toggle = document.querySelector('#chartContainerHeader .toggle-btn');
-            const container = document.getElementById('chartContainer');
-            const mapC = document.getElementById('mapContainer');
-            wrapper.classList.toggle('hidden');
-            const minimized = wrapper.classList.contains('hidden');
-            toggle.textContent = minimized ? '+' : '−';
-
-            // En desktop: al minimizar, el mapa ocupa el area liberada
-            if (window.matchMedia('(min-width: 769px)').matches) {
-                if (minimized) {
-                    const h = document.getElementById('chartContainerHeader').offsetHeight;
-                    container.style.height = h + 'px';
-                    mapC.style.bottom = h + 'px';
-                } else {
-                    container.style.height = '';
-                    mapC.style.bottom = '';
-                }
-            }
-            setTimeout(function () { map.invalidateSize(); }, 220);
-        }
-
-        // ============================================================
-        //  HERRAMIENTAS: 1) Geolocalizador  2) Busqueda de sitios (OSM)
-        // ============================================================
-        let searchIndex = [];
-        let userMarker = null;
-        let userCircle = null;
-        let osmSearchTimer = null;
-        let osmResultMarker = null;
-
-        // ---- 1) Geolocalizador ----
+        // ---- Geolocalizador ----
         const geoCtrl = L.control({ position: 'topleft' });
         geoCtrl.onAdd = function () {
             const c = L.DomUtil.create('div', 'leaflet-bar custom-ctrl');
-            c.innerHTML = '<a href="#" title="Ir a mi ubicacion" role="button">&#128205;</a>';
+            c.innerHTML = '<a href="#" title="Ir a mi ubicación" role="button">&#128205;</a>';
             L.DomEvent.disableClickPropagation(c);
             L.DomEvent.on(c.querySelector('a'), 'click', function (e) {
                 L.DomEvent.stop(e);
-                locateUser();
+                map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true });
             });
             return c;
         };
         geoCtrl.addTo(map);
 
-        function locateUser() {
-            map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true });
-        }
+        let userMarker = null;
+        let userCircle = null;
 
         map.on('locationfound', function (e) {
             if (userMarker) map.removeLayer(userMarker);
@@ -826,21 +518,21 @@
                     html: '<div style="font-size:26px; line-height:26px; text-shadow:0 0 3px #fff;">&#128205;</div>',
                     iconSize: [26, 26], iconAnchor: [13, 26], className: ''
                 })
-            }).addTo(map).bindPopup('Estas aqui (&plusmn;' + Math.round(e.accuracy) + ' m)').openPopup();
+            }).addTo(map).bindPopup('Estás aquí (&plusmn;' + Math.round(e.accuracy) + ' m)').openPopup();
         });
 
         map.on('locationerror', function (e) {
-            alert('No se pudo obtener tu ubicacion.\n' + e.message +
-                  '\n\n(La geolocalizacion requiere permiso del navegador y, en general, conexion segura HTTPS.)');
+            alert('No se pudo obtener tu ubicación.\n' + e.message +
+                  '\n\n(La geolocalización requiere permiso del navegador y, en general, conexión segura HTTPS.)');
         });
 
-        // ---- 2) Busqueda de sitios (capas propias + lugares OSM) ----
+        // ---- Búsqueda de sitios (capas propias + lugares OSM) ----
         const searchCtrl = L.control({ position: 'topright' });
         searchCtrl.onAdd = function () {
             const c = L.DomUtil.create('div', 'site-search-ctrl');
             c.innerHTML =
                 '<div class="ss-box">' +
-                '  <input id="siteSearchInput" type="text" placeholder="Buscar sitio o lugar (OSM)..." autocomplete="off">' +
+                '  <input id="siteSearchInput" type="text" placeholder="Buscar por código, nombre o lugar..." autocomplete="off">' +
                 '  <button id="siteSearchBtn" title="Buscar en OSM">&#128269;</button>' +
                 '</div>' +
                 '<div id="siteSearchResults" class="ss-results"></div>';
@@ -849,6 +541,10 @@
             return c;
         };
         searchCtrl.addTo(map);
+
+        const searchIndex = [];
+        let osmSearchTimer = null;
+        let osmResultMarker = null;
 
         document.getElementById('siteSearchInput').addEventListener('input', onSearchInput);
         document.getElementById('siteSearchInput').addEventListener('keydown', function (e) {
@@ -862,16 +558,14 @@
             const q = document.getElementById('siteSearchInput').value.trim();
             if (!q) { hideResults(); return; }
             const local = searchLocal(q);
-            renderResults(local, null);            // resultados de las capas, al instante
+            renderResults(local, null);
             clearTimeout(osmSearchTimer);
             osmSearchTimer = setTimeout(function () { runOsmSearch(q, local); }, 450);
         }
 
         function searchLocal(q) {
             const ql = q.toLowerCase();
-            return searchIndex
-                .filter(function (s) { return s.search.indexOf(ql) !== -1; })
-                .slice(0, 8);
+            return searchIndex.filter(function (s) { return s.search.indexOf(ql) !== -1; }).slice(0, 8);
         }
 
         function runOsmSearch(q, localCached) {
@@ -888,14 +582,14 @@
         function renderResults(local, osm) {
             const box = document.getElementById('siteSearchResults');
             let html = '';
+            const badgeColors = { SRH: '#2980b9', ADA: '#16a085' };
 
             if (local && local.length) {
-                html += '<div class="ss-header">Sitios monitoreados</div>';
+                html += '<div class="ss-header">Puntos monitoreados</div>';
                 local.forEach(function (s, i) {
-                    const color = s.layerName === 'mi-capa' ? '#2980b9' : '#16a085';
                     html += '<div class="ss-item" data-type="local" data-idx="' + i + '">' +
-                            '<span class="ss-badge" style="background:' + color + '">' + s.layerLabel + '</span>' +
-                            s.name +
+                            '<span class="ss-badge" style="background:' + badgeColors[s.layerName] + '">' + s.layerLabel + '</span>' +
+                            s.code + (s.name && s.name !== s.code ? ' — ' + s.name : '') +
                             (s.sub ? '<div class="ss-sub">' + s.sub + '</div>' : '') +
                             '</div>';
                 });
@@ -914,7 +608,7 @@
                     html += '<div class="ss-empty">Sin resultados.</div>';
                 }
             } else if (!local || !local.length) {
-                html += '<div class="ss-empty">Escribi para buscar...</div>';
+                html += '<div class="ss-empty">Escribí para buscar...</div>';
             }
 
             box.innerHTML = html;
@@ -946,7 +640,7 @@
             const toggle = document.getElementById(layerToggles[s.layerName]);
             if (toggle && !toggle.checked) { toggle.checked = true; updateMap(); }
             map.flyTo(s.latlng, 13, { duration: 0.8 });
-            map.once('moveend', function () { s.marker.openPopup(); });
+            map.once('moveend', function () { s.marker.fire('click'); });
         }
 
         function goToOsm(o) {
@@ -958,21 +652,501 @@
                 .bindPopup('<b>' + o.display_name + '</b>').openPopup();
         }
 
-        // Load layers
-        Promise.all(layerNames.map(loadGeoJsonLayer)).then(() => {
-            updateChart();
+        const layerNames = ['SRH', 'ADA'];
+        const layerDisplayNames = { SRH: 'SRH', ADA: 'ADA' };
+        const layerToggles = { SRH: 'srh-toggle', ADA: 'ada-toggle' };
+        const layerStats = { SRH: 'srh-stats', ADA: 'ada-stats' };
+
+        // Configuracion de campos por capa (segun los geojson reales)
+        const layerConfig = {
+            SRH: {
+                pointNameField: 'PUNTO',
+                idField: 'PUNTO',
+                nameField: 'NOMBRE CON',
+                popupFields: [
+                    { key: 'NOMBRE CON', label: 'Nombre' },
+                    { key: 'MUNICIPIO', label: 'Municipio' },
+                    { key: 'info', label: 'Info' },
+                    { key: 'Acciones', label: 'Acciones' }
+                ]
+            },
+            ADA: {
+                pointNameField: 'Nombre',
+                idField: 'CodPunto',
+                nameField: 'Nombre',
+                popupFields: [
+                    { key: 'CodPunto', label: 'CodPunto' },
+                    { key: 'Municipio', label: 'Municipio' },
+                    { key: 'Laguna Rio', label: 'Laguna/Río' },
+                    { key: 'info', label: 'Info' },
+                    { key: 'Acciones', label: 'Acciones' }
+                ]
+            }
+        };
+        const notesFields = ['S2 Fecha', 'S3 Fecha'];
+
+        // Color mapping for alerts
+        const alertColors = {
+            1: '#28a745',
+            2: '#ffe600',
+            3: '#ff9800',
+            4: '#dc3545'
+        };
+
+        let geoJsonLayers = {};           // capa visible en el mapa (fecha mas reciente por capa)
+        const historicalData = { SRH: {}, ADA: {} }; // fecha -> [{id,alerta}] por punto, para la serie temporal
+        const latestDateByLayer = {};
+        let selectedPoint = null;         // { layerName, id, name } - punto elegido en el mapa
+        let highlightMarker = null;       // resalta el punto seleccionado en el mapa
+
+        function formatDate(yyyymmdd) {
+            if (!yyyymmdd || yyyymmdd.length !== 8) return yyyymmdd || '-';
+            return `${yyyymmdd.slice(6, 8)}/${yyyymmdd.slice(4, 6)}/${yyyymmdd.slice(0, 4)}`;
+        }
+
+        function toISODate(yyyymmdd) {
+            if (!yyyymmdd || yyyymmdd.length !== 8) return yyyymmdd;
+            return `${yyyymmdd.slice(0,4)}-${yyyymmdd.slice(4,6)}-${yyyymmdd.slice(6,8)}`;
+        }
+
+        function hasValue(v) {
+            return v !== null && v !== undefined && v !== '';
+        }
+
+        function getSymbol(dif) {
+            if (dif === 1) return '⬆';
+            if (dif === -1) return '⬇';
+            return '●';
+        }
+
+        function getAlertBadge(alerta) {
+            if (alerta === 2) return '!';
+            if (alerta === 3 || alerta === 4) return '✕';
+            return '';
+        }
+
+        function createMarker(feature, latlng, layerName) {
+            const props = feature.properties;
+            const alerta = props.Alerta || 1;
+            const dif = props.Dif || 0;
+            const color = alertColors[alerta] || alertColors[1];
+            const symbol = getSymbol(dif);
+            const isCircle = dif === 0;
+            const config = layerConfig[layerName];
+
+            // Bordes: gris oscuro para amarillo, blanco para el resto
+            const borderColor = (alerta === 2) ? '#555' : 'white';
+            const textShadow = `-1px -1px 0 ${borderColor}, 1px -1px 0 ${borderColor}, -1px 1px 0 ${borderColor}, 1px 1px 0 ${borderColor}`;
+
+            // Badge solo en círculos (●), no en flechas
+            const badge = isCircle ? getAlertBadge(alerta) : '';
+            const badgeColor = (alerta === 2) ? '#1a1a1a' : 'white';
+            const badgeHtml = badge
+                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:10px;font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
+                : '';
+
+            // Círculos 2px más grandes que flechas
+            const fontSize = isCircle ? '30px' : '28px';
+            const html = `<div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};">${symbol}</span>${badgeHtml}</div>`;
+
+            const marker = L.marker(latlng, {
+                icon: L.divIcon({ html: html, iconSize: [32, 32], className: '' })
+            });
+
+            const layerLabel = layerDisplayNames[layerName];
+            const pointName = props[config.pointNameField] || '-';
+
+            let popupContent = `
+                <div style="font-size: 13px; min-width: 190px;">
+                    <div style="
+                        text-align: center;
+                        font-size: 18px;
+                        font-weight: 800;
+                        letter-spacing: 2px;
+                        color: #2c3e50;
+                        background: #ecf0f1;
+                        border-radius: 6px 6px 0 0;
+                        padding: 6px 10px 2px;
+                        margin-bottom: 2px;
+                        text-transform: uppercase;
+                    ">${layerLabel}</div>
+                    <div style="
+                        text-align: center;
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #1a5276;
+                        background: #e8f4fc;
+                        border-radius: 0;
+                        padding: 4px 10px 8px;
+                        margin-bottom: 8px;
+                        border-bottom: 2px solid #e0e0e0;
+                    ">${pointName}</div>
+            `;
+
+            config.popupFields.forEach(({ key, label }) => {
+                if (key === config.pointNameField) return;
+
+                let value = hasValue(props[key]) ? props[key] : '-';
+
+                if (key === 'info' && value !== '-') {
+                    const alertStyles = {
+                        'alerta verde':    { bg: '#1e7e34', color: '#ffffff' },
+                        'alerta amarillo': { bg: '#d4a017', color: '#ffffff' },
+                        'alerta naranja':  { bg: '#d35400', color: '#ffffff' },
+                        'alerta roja':     { bg: '#c0392b', color: '#ffffff' }
+                    };
+                    const commaIdx = value.indexOf(',');
+                    let prefix = commaIdx !== -1 ? value.substring(0, commaIdx) : value;
+                    let rest   = commaIdx !== -1 ? value.substring(commaIdx) : '';
+                    const prefixLower = prefix.toLowerCase().trim();
+                    let matched = null;
+                    for (const k of Object.keys(alertStyles)) {
+                        if (prefixLower.includes(k)) { matched = k; break; }
+                    }
+                    if (matched) {
+                        const s = alertStyles[matched];
+                        value = `<span style="display:inline-block;background:${s.bg};color:${s.color};font-weight:700;padding:1px 7px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${prefix}</span>${rest}`;
+                    }
+                }
+
+                const fontSize = key === 'Acciones' ? 'font-size: 14px;' : '';
+                popupContent += `<div style="padding: 2px 4px; ${fontSize}"><strong>${label}:</strong> ${value}</div>`;
+            });
+
+            // Notas chicas: S2 Fecha / S3 Fecha, solo si tienen datos
+            const notes = notesFields
+                .filter(f => hasValue(props[f]))
+                .map(f => `${f}: ${props[f]}`);
+            if (notes.length) {
+                popupContent += `<div style="padding: 4px 4px 0; margin-top: 4px; border-top: 1px solid #e0e0e0; font-size: 10px; color: #888;">${notes.join(' &nbsp;|&nbsp; ')}</div>`;
+            }
+
+            popupContent += '</div>';
+            marker.bindPopup(popupContent);
+
+            const idValue = props[config.idField];
+            marker.on('click', () => selectPoint(layerName, idValue, pointName, latlng));
+
+            searchIndex.push({
+                marker: marker,
+                layerName: layerName,
+                layerLabel: layerLabel,
+                code: idValue || '-',
+                name: props[config.nameField] || '',
+                sub: props.Municipio || props.MUNICIPIO || '',
+                latlng: latlng,
+                search: (idValue + ' ' + (props[config.nameField] || '') + ' ' + (props.Municipio || props.MUNICIPIO || '') + ' ' + layerLabel).toLowerCase()
+            });
+
+            return marker;
+        }
+
+        function selectPoint(layerName, id, name, latlng) {
+            const isSameSelection = selectedPoint && selectedPoint.layerName === layerName && selectedPoint.id === id;
+            selectedPoint = isSameSelection ? null : { layerName, id, name };
+
+            if (highlightMarker) {
+                map.removeLayer(highlightMarker);
+                highlightMarker = null;
+            }
+            if (selectedPoint) {
+                highlightMarker = L.circleMarker(latlng, {
+                    radius: 14,
+                    color: '#1a73e8',
+                    weight: 3,
+                    fill: false,
+                    dashArray: '4,3'
+                }).addTo(map);
+            }
+
+            updateTimeSeries();
+        }
+
+        function loadDate(layerName, date) {
+            const fileName = `data/CianoAlert_${layerName}_${date}.geojson`;
+            return fetch(fileName)
+                .then(res => res.json())
+                .then(data => {
+                    const idField = layerConfig[layerName].idField;
+                    const points = [];
+                    data.features.forEach(feature => {
+                        if (feature.geometry && feature.geometry.coordinates) {
+                            points.push({
+                                id: feature.properties[idField],
+                                alerta: feature.properties.Alerta || 1
+                            });
+                        }
+                    });
+                    historicalData[layerName][date] = points;
+
+                    if (date === latestDateByLayer[layerName]) {
+                        const featureGroup = L.featureGroup();
+                        data.features.forEach(feature => {
+                            if (feature.geometry && feature.geometry.coordinates) {
+                                const marker = createMarker(feature,
+                                    [feature.geometry.coordinates[1], feature.geometry.coordinates[0]],
+                                    layerName);
+                                featureGroup.addLayer(marker);
+                            }
+                        });
+                        geoJsonLayers[layerName] = { data: data, featureGroup: featureGroup };
+                        featureGroup.addTo(map);
+
+                        document.getElementById(layerStats[layerName]).innerHTML =
+                            `Puntos: ${data.features.length}<br><span class="stats-date">Fecha: ${formatDate(date)}</span>`;
+                    }
+                })
+                .catch(err => {
+                    console.warn(`No se pudo cargar ${fileName}:`, err);
+                    if (date === latestDateByLayer[layerName]) {
+                        document.getElementById(layerStats[layerName]).innerHTML = `Puntos: 0 (archivo no encontrado)`;
+                    }
+                });
+        }
+
+        function updateMap() {
+            layerNames.forEach(layerName => {
+                if (!geoJsonLayers[layerName]) return;
+                const isVisible = document.getElementById(layerToggles[layerName]).checked;
+                if (isVisible) {
+                    map.addLayer(geoJsonLayers[layerName].featureGroup);
+                } else {
+                    map.removeLayer(geoJsonLayers[layerName].featureGroup);
+                }
+            });
             updateDashboard();
-            // Actualizar dinámicamente con zoom
-            map.on('zoomend', () => {
-                updateChart();
-                updateDashboard();
+        }
+
+        function getVisibleFeatures() {
+            const visibleFeatures = [];
+            const bounds = map.getBounds();
+
+            layerNames.forEach(layerName => {
+                if (!document.getElementById(layerToggles[layerName]).checked) return;
+                if (!geoJsonLayers[layerName]) return;
+
+                geoJsonLayers[layerName].data.features.forEach(feature => {
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        const lat = feature.geometry.coordinates[1];
+                        const lng = feature.geometry.coordinates[0];
+                        if (bounds.contains(L.latLng(lat, lng))) {
+                            visibleFeatures.push({ feature: feature, layer: layerName });
+                        }
+                    }
+                });
             });
-            // Actualizar dinámicamente con movimiento
-            map.on('moveend', () => {
-                updateChart();
-                updateDashboard();
+            return visibleFeatures;
+        }
+
+        function updateDashboard() {
+            const visibleFeatures = getVisibleFeatures();
+            const total = visibleFeatures.length;
+
+            const alertCounts = {
+                1: { stable: 0, increase: 0, decrease: 0, total: 0 },
+                2: { stable: 0, increase: 0, decrease: 0, total: 0 },
+                3: { stable: 0, increase: 0, decrease: 0, total: 0 },
+                4: { stable: 0, increase: 0, decrease: 0, total: 0 }
+            };
+
+            visibleFeatures.forEach(({ feature }) => {
+                const alerta = feature.properties.Alerta || 1;
+                const dif = feature.properties.Dif || 0;
+
+                alertCounts[alerta].total++;
+                if (dif === 0) alertCounts[alerta].stable++;
+                if (dif === 1) alertCounts[alerta].increase++;
+                if (dif === -1) alertCounts[alerta].decrease++;
             });
-        });
+
+            const pct = (n) => total > 0 ? Math.round((n / total) * 100) : 0;
+            const levelColors = { 1: '#28a745', 2: '#ffe600', 3: '#ff9800', 4: '#dc3545' };
+            const levelNames  = { 1: 'Verde', 2: 'Amarillo', 3: 'Naranja', 4: 'Rojo' };
+
+            const tableRows = [4, 3, 2, 1].map(lv => {
+                const c = alertCounts[lv];
+                const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${levelColors[lv]};vertical-align:middle;margin-right:5px;"></span>`;
+                return `<tr>
+                    <td>${dot}Alerta ${lv} (${levelNames[lv]})</td>
+                    <td>${c.total}</td>
+                    <td>${pct(c.total)}%</td>
+                    <td>${c.stable}</td>
+                    <td>${c.increase}</td>
+                    <td>${c.decrease}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('dashboardContainer').innerHTML = `
+                <div id="donutChart"></div>
+                <table class="alert-table">
+                    <thead><tr><th>Nivel</th><th>N</th><th>%</th><th>Est</th><th>⬆</th><th>⬇</th></tr></thead>
+                    <tbody>
+                        ${tableRows}
+                        <tr><td><strong>Total</strong></td><td><strong>${total}</strong></td><td><strong>100%</strong></td><td colspan="3"></td></tr>
+                    </tbody>
+                </table>`;
+
+            Plotly.newPlot('donutChart', [{
+                type: 'pie',
+                hole: 0.55,
+                values: [alertCounts[4].total, alertCounts[3].total, alertCounts[2].total, alertCounts[1].total],
+                labels: ['Alerta 4 (Rojo)', 'Alerta 3 (Naranja)', 'Alerta 2 (Amarillo)', 'Alerta 1 (Verde)'],
+                marker: { colors: ['#dc3545', '#ff9800', '#ffe600', '#28a745'], line: { color: 'white', width: 2 } },
+                textinfo: 'percent',
+                textfont: { size: 11 },
+                hovertemplate: '<b>%{label}</b><br>%{value} puntos (%{percent})<extra></extra>',
+                direction: 'clockwise',
+                sort: false
+            }], {
+                showlegend: false,
+                margin: { l: 5, r: 5, t: 5, b: 5 },
+                annotations: [{ text: `<b>${total}</b><br>puntos`, x: 0.5, y: 0.5, font: { size: 13, color: '#333' }, showarrow: false }],
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            }, { responsive: true, displayModeBar: false });
+        }
+
+        function getPointHistory() {
+            const { layerName, id } = selectedPoint;
+            const dates = Object.keys(historicalData[layerName] || {}).sort();
+
+            const xDates = [];
+            const alertas = [];
+            dates.forEach(date => {
+                const found = (historicalData[layerName][date] || []).find(p => p.id === id);
+                if (found) {
+                    xDates.push(date);
+                    alertas.push(found.alerta);
+                }
+            });
+
+            return { xDates, alertas };
+        }
+
+        function updateTimeSeries() {
+            const container = document.getElementById('timeSeriesChart');
+
+            if (!selectedPoint) {
+                Plotly.purge(container);
+                container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:13px;text-align:center;padding:0 20px;">
+                    Hacé clic en un punto del mapa para ver la evolución de su nivel de Alerta en el tiempo.
+                </div>`;
+                return;
+            }
+            container.innerHTML = '';
+
+            const { xDates, alertas } = getPointHistory();
+            const xIsoDates = xDates.map(toISODate);
+            const markerColors = alertas.map(a => alertColors[a] || '#999');
+
+            const bands = [1, 2, 3, 4].map(level => ({
+                type: 'rect',
+                xref: 'paper', x0: 0, x1: 1,
+                yref: 'y', y0: level - 0.5, y1: level + 0.5,
+                fillcolor: alertColors[level],
+                opacity: 0.32,
+                line: { width: 0 },
+                layer: 'below'
+            }));
+
+            const trace = {
+                x: xIsoDates,
+                y: alertas,
+                mode: 'lines+markers',
+                line: { color: '#34495e', width: 2 },
+                marker: { color: markerColors, size: 10, line: { color: '#34495e', width: 1 } },
+                hovertemplate: '<b>%{x|%d/%m/%Y}</b><br>Alerta %{y}<extra></extra>',
+                name: selectedPoint.name
+            };
+
+            const layout = {
+                title: { text: `${selectedPoint.name} (${layerDisplayNames[selectedPoint.layerName]})`, font: { size: 13 } },
+                shapes: bands,
+                showlegend: false,
+                margin: { l: 90, r: 20, t: 40, b: 60 },
+                font: { size: 11 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                xaxis: {
+                    type: 'date',
+                    tickformat: '%d/%m/%Y',
+                    tickangle: -40,
+                    showgrid: true,
+                    gridcolor: '#e8e8e8',
+                    tickfont: { size: 10 }
+                },
+                yaxis: {
+                    title: 'Nivel de Alerta',
+                    tickvals: [1, 2, 3, 4],
+                    ticktext: ['1 - Verde', '2 - Amarillo', '3 - Naranja', '4 - Rojo'],
+                    range: [0.5, 4.5],
+                    showgrid: false
+                }
+            };
+
+            Plotly.newPlot(container, [trace], layout, { responsive: true, displayModeBar: false });
+        }
+
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector('.toggle-btn');
+            content.classList.toggle('hidden');
+            toggle.textContent = content.classList.contains('hidden') ? '+' : '−';
+        }
+
+        function toggleChartPanel() {
+            const wrapper = document.getElementById('chartContentWrapper');
+            const toggle = document.querySelector('#chartContainerHeader .toggle-btn');
+            const container = document.getElementById('chartContainer');
+            const mapC = document.getElementById('mapContainer');
+            wrapper.classList.toggle('hidden');
+            const minimized = wrapper.classList.contains('hidden');
+            toggle.textContent = minimized ? '+' : '−';
+
+            // En desktop: al minimizar, el mapa ocupa el area liberada
+            if (window.matchMedia('(min-width: 769px)').matches) {
+                if (minimized) {
+                    const h = document.getElementById('chartContainerHeader').offsetHeight;
+                    container.style.height = h + 'px';
+                    mapC.style.bottom = h + 'px';
+                } else {
+                    container.style.height = '';
+                    mapC.style.bottom = '';
+                }
+            }
+            setTimeout(() => map.invalidateSize(), 220);
+        }
+
+        // Carga inicial: manifest.json -> todas las fechas historicas + capa mas reciente en el mapa
+        fetch('manifest.json')
+            .then(res => res.json())
+            .then(manifest => {
+                const layerDates = { SRH: manifest.srh || [], ADA: manifest.ada || [] };
+                layerNames.forEach(l => {
+                    latestDateByLayer[l] = layerDates[l].length ? layerDates[l][layerDates[l].length - 1] : null;
+                });
+
+                const fetches = [];
+                layerNames.forEach(l => {
+                    layerDates[l].forEach(date => fetches.push(loadDate(l, date)));
+                });
+
+                return Promise.all(fetches);
+            })
+            .then(() => {
+                const maxDate = [latestDateByLayer.SRH, latestDateByLayer.ADA]
+                    .filter(Boolean).sort().pop();
+                document.getElementById('panelTitle').textContent = maxDate
+                    ? `Alertas ${formatDate(maxDate)}`
+                    : 'Alertas';
+
+                updateDashboard();
+                updateTimeSeries();
+
+                map.on('zoomend', updateDashboard);
+                map.on('moveend', updateDashboard);
+            })
+            .catch(err => console.error('Error cargando manifest.json:', err));
 
         // Resize handler for responsive
         window.addEventListener('resize', () => {
@@ -981,29 +1155,5 @@
             }, 100);
         });
     </script>
-<script>window.parent.postMessage({ action: "ready" }, "*"); 
- 
-window.console = new Proxy(console, {
-  get(target, prop) {
-    if (['log', 'warn', 'error'].includes(prop)) {
-      return new Proxy(target[prop], {
-        apply(fn, thisArg, args) {
-          fn.apply(thisArg, args);
-          window.parent.postMessage({ action: 'console', 
-            type: prop, 
-            args: args.map((arg) => {
-              try {
-                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
-              } catch (e) {
-                return arg;
-              }
-            }) 
-          }, '*');
-        }
-      });
-    }
-    return target[prop];
-  }
-});
-</script></body>
+</body>
 </html>
