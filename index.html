@@ -568,25 +568,34 @@
         let userMarker = null;
         let userCircle = null;
 
-        map.on('locationfound', function (e) {
+        function showUserLocation(latlng, accuracy) {
             if (userMarker) map.removeLayer(userMarker);
             if (userCircle) map.removeLayer(userCircle);
-            userCircle = L.circle(e.latlng, {
-                radius: e.accuracy,
+            userCircle = L.circle(latlng, {
+                radius: accuracy,
                 color: '#2c3e50', fillColor: '#3498db', fillOpacity: 0.15, weight: 1
             }).addTo(map);
-            userMarker = L.marker(e.latlng, {
+            userMarker = L.marker(latlng, {
                 icon: L.divIcon({
                     html: '<div style="font-size:26px; line-height:26px; text-shadow:0 0 3px #fff;">&#128205;</div>',
                     iconSize: [26, 26], iconAnchor: [13, 26], className: ''
                 })
-            }).addTo(map).bindPopup('Estás aquí (&plusmn;' + Math.round(e.accuracy) + ' m)').openPopup();
+            }).addTo(map).bindPopup('Estás aquí (&plusmn;' + Math.round(accuracy) + ' m)').openPopup();
+        }
+
+        // Llamada desde app nativa (Kodular): Web_Viewer1.EvaluateJS "setUserLocation(lat, lng)"
+        window.setUserLocation = function(lat, lng) {
+            const latlng = L.latLng(parseFloat(lat), parseFloat(lng));
+            showUserLocation(latlng, 50);
+            map.setView(latlng, 14);
+        };
+
+        map.on('locationfound', function (e) {
+            showUserLocation(e.latlng, e.accuracy);
         });
 
-        map.on('locationerror', function (e) {
-            alert('No se pudo obtener tu ubicación.\n' + e.message +
-                  '\n\n(La geolocalización requiere permiso del navegador y, en general, conexión segura HTTPS.)');
-        });
+        // En WebView (Kodular) la ubicación llega por setUserLocation(); no mostrar alert
+        map.on('locationerror', function () {});
 
         // ---- Búsqueda de sitios (capas propias + lugares OSM) ----
         const searchCtrl = L.control({ position: 'topright' });
