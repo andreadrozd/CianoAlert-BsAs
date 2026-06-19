@@ -587,10 +587,9 @@
             }).addTo(map).bindPopup('Estás aquí (&plusmn;' + Math.round(accuracy) + ' m)').openPopup();
         }
 
-        // Llamada desde app nativa (Kodular): Web_Viewer1.EvaluateJS "setUserLocation('lat','lng')"
+        // Llamada desde app nativa (Kodular): Web_Viewer1.EvaluateJS "setUserLocation(lat,lng)"
         window.setUserLocation = function(lat, lng) {
-            lat = parseFloat(String(lat).replace(',', '.'));
-            lng = parseFloat(String(lng).replace(',', '.'));
+            lat = parseFloat(lat); lng = parseFloat(lng);
             if (!lat || !lng) return;
             const latlng = L.latLng(lat, lng);
             window._nativeLocation = latlng;
