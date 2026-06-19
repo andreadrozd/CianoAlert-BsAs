@@ -559,7 +559,11 @@
             L.DomEvent.disableClickPropagation(c);
             L.DomEvent.on(c.querySelector('a'), 'click', function (e) {
                 L.DomEvent.stop(e);
-                map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true });
+                if (window._nativeLocation) {
+                    map.setView(window._nativeLocation, 14);
+                } else {
+                    map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true });
+                }
             });
             return c;
         };
@@ -586,6 +590,7 @@
         // Llamada desde app nativa (Kodular): Web_Viewer1.EvaluateJS "setUserLocation(lat, lng)"
         window.setUserLocation = function(lat, lng) {
             const latlng = L.latLng(parseFloat(lat), parseFloat(lng));
+            window._nativeLocation = latlng;
             showUserLocation(latlng, 50);
             map.setView(latlng, 14);
         };
