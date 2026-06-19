@@ -589,7 +589,9 @@
 
         // Llamada desde app nativa (Kodular): Web_Viewer1.EvaluateJS "setUserLocation(lat, lng)"
         window.setUserLocation = function(lat, lng) {
-            const latlng = L.latLng(parseFloat(lat), parseFloat(lng));
+            lat = parseFloat(lat); lng = parseFloat(lng);
+            if (!lat || !lng) return;
+            const latlng = L.latLng(lat, lng);
             window._nativeLocation = latlng;
             showUserLocation(latlng, 50);
             map.setView(latlng, 14);
