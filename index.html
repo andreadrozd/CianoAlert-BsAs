@@ -601,8 +601,10 @@
             showUserLocation(e.latlng, e.accuracy);
         });
 
-        // En WebView (Kodular) la ubicación llega por setUserLocation(); no mostrar alert
-        map.on('locationerror', function () {});
+        map.on('locationerror', function (e) {
+            alert('No se pudo obtener tu ubicación.\n' + e.message +
+                  '\n\n(La geolocalización requiere permiso del navegador y, en general, conexión segura HTTPS.)');
+        });
 
         // ---- Búsqueda de sitios (capas propias + lugares OSM) ----
         const searchCtrl = L.control({ position: 'topright' });
