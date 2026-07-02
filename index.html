@@ -518,11 +518,11 @@
         .legend-arrow { font-size: 34px; line-height: 1; display: inline-block; transform: scaleX(1.35) scaleY(0.85); }
         .legend-label { font-size: 14px; }
         @media (max-width: 768px) {
-            .legend-sym { width: 46px; height: 46px; }
-            .legend-dot { font-size: 40px; }
-            .legend-arrow { font-size: 38px; }
-            .legend-badge { font-size: 15px; }
-            .legend-item { margin-bottom: 10px; gap: 12px; }
+            .legend-sym { width: 40px; height: 40px; }
+            .legend-dot { font-size: 32px; }
+            .legend-arrow { font-size: 38px; }  /* flechas sin cambio */
+            .legend-badge { font-size: 12px; }
+            .legend-item { margin-bottom: 9px; gap: 12px; }
         }
         /* Barra de íconos de gráficos */
         #chartIconBar {
@@ -950,16 +950,20 @@
             // Badge solo en círculos (●), no en flechas
             const badge = isCircle ? getAlertBadge(alerta) : '';
             const badgeColor = (alerta === 2) ? '#1a1a1a' : 'white';
-            const fontSize = isCircle ? '30px' : '28px';
+            // En celular los círculos se ven más chicos; las flechas quedan igual
+            const isMob = window.matchMedia('(max-width: 768px)').matches;
+            const fontSize = isCircle ? (isMob ? '23px' : '30px') : '28px';
+            const badgeFont = (isCircle && isMob) ? '8px' : '10px';
+            const iconDim = (isCircle && isMob) ? 26 : 32;
             const badgeHtml = badge
-                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:10px;font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
+                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:${badgeFont};font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
                 : '';
 
             const arrowTransform = !isCircle ? 'display:inline-block;transform:scaleX(1.4) scaleY(0.7);' : '';
-            const html = `<div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
+            const html = `<div style="position:relative;width:${iconDim}px;height:${iconDim}px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
 
             const marker = L.marker(latlng, {
-                icon: L.divIcon({ html: html, iconSize: [32, 32], className: '' })
+                icon: L.divIcon({ html: html, iconSize: [iconDim, iconDim], className: '' })
             });
 
             const layerLabel = layerDisplayNames[layerName];
