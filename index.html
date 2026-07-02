@@ -84,7 +84,7 @@
                 width: 100% !important; height: 46% !important;
                 transform: translateY(100%);
                 transition: transform 0.3s ease;
-                z-index: 10;
+                z-index: 1000 !important;
                 border-radius: 14px 14px 0 0;
                 box-shadow: 0 -4px 16px rgba(0,0,0,0.2);
             }
@@ -98,12 +98,14 @@
             }
             #chartAndDashboard {
                 flex-direction: column !important;
-                height: auto !important;
-                gap: 10px !important;
+                height: 100% !important;
+                gap: 8px !important;
             }
-            #timeSeriesChart { flex: 0 0 200px !important; min-width: 100% !important; }
-            #dashboardContainer { flex: 0 0 auto !important; padding-right: 0 !important; }
-            #donutChart { height: 160px !important; }
+            /* Serie temporal: llena todo el alto disponible del bottom sheet */
+            #timeSeriesChart { flex: 1 1 auto !important; min-width: 100% !important; min-height: 0 !important; height: 100% !important; }
+            /* Distribución: donut arriba (fijo) + tabla abajo, con scroll si hace falta */
+            #dashboardContainer { flex: 1 1 auto !important; min-height: 0 !important; padding-right: 0 !important; overflow-y: auto !important; }
+            #donutChart { height: 180px !important; flex: 0 0 180px !important; }
 
             /* ── Tamaños aumentados para baja visión ── */
             #rightPanel { font-size: 16px !important; }
@@ -114,10 +116,12 @@
             .layer-stats .stats-date { font-size: 12px !important; }
             .checkbox-group label { font-size: 16px !important; gap: 10px !important; }
             .checkbox-group input[type="checkbox"] { width: 20px !important; height: 20px !important; }
-            .legend-item span:last-child { font-size: 15px !important; }
+            .legend-label { font-size: 15px !important; }
             .chart-icon-btn { font-size: 13px !important; padding: 10px 14px !important; min-width: 100px !important; }
             .chart-icon-btn .cib-icon { font-size: 26px !important; }
             #mobileDrawerTab { font-size: 22px !important; width: 28px !important; height: 52px !important; }
+            #chartContainerHeader button { width: 36px !important; height: 36px !important; font-size: 20px !important; }
+            #chartContainerHeader .toggle-btn { font-size: 24px !important; }
         }
         /* RESPONSIVO: TABLETA */
         @media (max-width: 1024px) and (min-width: 769px) {
@@ -139,7 +143,7 @@
             top: 0;
             left: 0;
             right: 280px;
-            bottom: 45%;
+            bottom: 38%;
             z-index: 1;
         }
         #chartContainer {
@@ -147,7 +151,7 @@
             bottom: 0;
             left: 0;
             right: 280px;
-            height: 45%;
+            height: 38%;
             background: #ecf0f1;
             border-top: 2px solid #ddd;
             padding: 0;
@@ -173,8 +177,9 @@
         }
         #chartContentWrapper {
             flex: 1;
-            overflow: auto;
-            padding: 15px;
+            min-height: 0;
+            overflow: hidden;
+            padding: 10px 15px;
         }
         #chartContentWrapper.hidden {
             display: none;
@@ -186,8 +191,10 @@
             height: 100%;
         }
         #timeSeriesChart {
-            flex: 1 1 58%;
-            min-width: 380px;
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            height: 100%;
         }
         #dashboardContainer {
             flex: 1 1 42%;
@@ -483,7 +490,7 @@
             #chartContainer { display: none; }
             #chartContainer.chart-visible { display: flex; }
             #mapContainer { bottom: 0 !important; }
-            #mapContainer.chart-visible { bottom: 45% !important; }
+            #mapContainer.chart-visible { bottom: 38% !important; }
             #panelCollapseBtn { display: block !important; }
         }
         /* Botón colapsar panel */
@@ -494,6 +501,29 @@
             cursor: pointer; line-height: 1; padding: 0; flex-shrink: 0;
         }
         #panelCollapseBtn:hover { background: rgba(255,255,255,0.35); }
+        /* ── Leyenda: símbolos consistentes y grandes ── */
+        .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .legend-sym {
+            width: 42px; height: 42px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .legend-dot { font-size: 36px; line-height: 1; }
+        .legend-shadow-w { text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
+        .legend-shadow-d { text-shadow: -1px -1px 0 #555, 1px -1px 0 #555, -1px 1px 0 #555, 1px 1px 0 #555; }
+        .legend-badge {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -32%);
+            font-size: 13px; font-weight: 700; line-height: 1; pointer-events: none;
+        }
+        .legend-arrow { font-size: 34px; line-height: 1; display: inline-block; transform: scaleX(1.35) scaleY(0.85); }
+        .legend-label { font-size: 14px; }
+        @media (max-width: 768px) {
+            .legend-sym { width: 46px; height: 46px; }
+            .legend-dot { font-size: 40px; }
+            .legend-arrow { font-size: 38px; }
+            .legend-badge { font-size: 15px; }
+            .legend-item { margin-bottom: 10px; gap: 12px; }
+        }
         /* Barra de íconos de gráficos */
         #chartIconBar {
             display: flex; gap: 8px; justify-content: center;
@@ -571,62 +601,60 @@
             </div>
             <div class="section-content">
                 <div style="margin-bottom:8px;"><strong>Nivel de alerta</strong></div>
-                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size:30px;color:#28a745;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
+                <div class="legend-item">
+                    <span class="legend-sym">
+                        <span class="legend-dot legend-shadow-w" style="color:#28a745;">●</span>
                     </span>
-                    <span>Alerta 1 (Verde)</span>
+                    <span class="legend-label">Alerta 1 (Verde)</span>
                 </div>
-                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                        <span style="position:relative;width:32px;height:32px;display:inline-block;">
-                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;color:#ffe600;line-height:1;text-shadow:-1px -1px 0 #555,1px -1px 0 #555,-1px 1px 0 #555,1px 1px 0 #555;">●</span>
-                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);font-size:10px;color:#1a1a1a;line-height:1;font-weight:700;">!</span>
-                        </span>
+                <div class="legend-item">
+                    <span class="legend-sym">
+                        <span class="legend-dot legend-shadow-d" style="color:#ffe600;">●</span>
+                        <span class="legend-badge" style="color:#1a1a1a;">!</span>
                     </span>
-                    <span>Alerta 2 (Amarillo)</span>
+                    <span class="legend-label">Alerta 2 (Amarillo)</span>
                 </div>
-                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                        <span style="position:relative;width:32px;height:32px;display:inline-block;">
-                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;color:#ff9800;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
-                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);font-size:10px;color:white;line-height:1;font-weight:700;">✕</span>
-                        </span>
+                <div class="legend-item">
+                    <span class="legend-sym">
+                        <span class="legend-dot legend-shadow-w" style="color:#ff9800;">●</span>
+                        <span class="legend-badge" style="color:#fff;">✕</span>
                     </span>
-                    <span>Alerta 3 (Naranja)</span>
+                    <span class="legend-label">Alerta 3 (Naranja)</span>
                 </div>
-                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                        <span style="position:relative;width:32px;height:32px;display:inline-block;">
-                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;color:#dc3545;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
-                            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);font-size:10px;color:white;line-height:1;font-weight:700;">✕</span>
-                        </span>
+                <div class="legend-item">
+                    <span class="legend-sym">
+                        <span class="legend-dot legend-shadow-w" style="color:#dc3545;">●</span>
+                        <span class="legend-badge" style="color:#fff;">✕</span>
                     </span>
-                    <span>Alerta 4 (Rojo)</span>
+                    <span class="legend-label">Alerta 4 (Rojo)</span>
                 </div>
                 <div style="margin-top:12px;margin-bottom:8px;"><strong>Tendencias</strong></div>
-                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size:30px;color:#555;line-height:1;text-shadow:-1px -1px 0 white,1px -1px 0 white,-1px 1px 0 white,1px 1px 0 white;">●</span>
+                <div class="legend-item">
+                    <span class="legend-sym">
+                        <span class="legend-dot legend-shadow-w" style="color:#555;">●</span>
                     </span>
-                    <span>Estable</span>
+                    <span class="legend-label">Estable</span>
                 </div>
-                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size:28px;line-height:1;display:inline-block;transform:scaleX(1.4) scaleY(0.7);">⬆</span>
+                <div class="legend-item">
+                    <span class="legend-sym">
+                        <span class="legend-arrow">⬆</span>
                     </span>
-                    <span>En aumento</span>
+                    <span class="legend-label">En aumento</span>
                 </div>
-                <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size:28px;line-height:1;display:inline-block;transform:scaleX(1.4) scaleY(0.7);">⬇</span>
+                <div class="legend-item">
+                    <span class="legend-sym">
+                        <span class="legend-arrow">⬇</span>
                     </span>
-                    <span>En disminución</span>
+                    <span class="legend-label">En disminución</span>
                 </div>
             </div>
         </div>
         <!-- Íconos para abrir gráficos -->
         <div id="chartIconBar">
+            <button class="chart-icon-btn" id="btnPopups" onclick="togglePopups()" title="Mostrar info de puntos">
+                <span class="cib-icon">💬</span>
+                <span>Info</span>
+            </button>
             <button class="chart-icon-btn" id="btnChartDonut" onclick="showChartPanel('donut')" title="Distribución de alertas">
                 <span class="cib-icon">📊</span>
                 <span>Distribución</span>
@@ -922,26 +950,24 @@
             // Badge solo en círculos (●), no en flechas
             const badge = isCircle ? getAlertBadge(alerta) : '';
             const badgeColor = (alerta === 2) ? '#1a1a1a' : 'white';
-            const mob = window.matchMedia('(max-width: 768px)').matches;
-            const fontSize = isCircle ? (mob ? '40px' : '30px') : (mob ? '38px' : '28px');
-            const badgeFontSize = mob ? '14px' : '10px';
-            const iconDim = mob ? 44 : 32;
+            const fontSize = isCircle ? '30px' : '28px';
             const badgeHtml = badge
-                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:${badgeFontSize};font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
+                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:10px;font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
                 : '';
 
             const arrowTransform = !isCircle ? 'display:inline-block;transform:scaleX(1.4) scaleY(0.7);' : '';
-            const html = `<div style="position:relative;width:${iconDim}px;height:${iconDim}px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
+            const html = `<div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
 
             const marker = L.marker(latlng, {
-                icon: L.divIcon({ html: html, iconSize: [iconDim, iconDim], className: '' })
+                icon: L.divIcon({ html: html, iconSize: [32, 32], className: '' })
             });
 
             const layerLabel = layerDisplayNames[layerName];
             const pointName = props[config.pointNameField] || '-';
 
-            const popupBase = mob ? '15px' : '13px';
-            const popupWidth = mob ? '220px' : '190px';
+            const _isMob = window.matchMedia('(max-width: 768px)').matches;
+            const popupBase = _isMob ? '15px' : '13px';
+            const popupWidth = _isMob ? '220px' : '190px';
             let popupContent = `
                 <div style="font-size: ${popupBase}; min-width: ${popupWidth};">
                     <div style="
@@ -1008,10 +1034,13 @@
             }
 
             popupContent += '</div>';
-            marker.bindPopup(popupContent);
+            const _popup = L.popup({ maxWidth: 320 }).setContent(popupContent);
 
             const idValue = props[config.idField];
-            marker.on('click', () => selectPoint(layerName, idValue, pointName, latlng));
+            marker.on('click', () => {
+                selectPoint(layerName, idValue, pointName, latlng);
+                if (window._popupsEnabled) _popup.setLatLng(latlng).openOn(map);
+            });
 
             searchIndex.push({
                 marker: marker,
@@ -1255,7 +1284,7 @@
                 title: { text: `${selectedPoint.name} (${layerDisplayNames[selectedPoint.layerName]})`, font: { size: 13 } },
                 shapes: bands,
                 showlegend: false,
-                margin: { l: 90, r: 20, t: 40, b: 60 },
+                margin: { l: 80, r: 15, t: 22, b: 45 },
                 font: { size: 11 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
@@ -1277,14 +1306,6 @@
             };
 
             Plotly.newPlot(container, [trace], layout, { responsive: true, displayModeBar: false });
-
-            // Mobile: abrir el bottom sheet
-            if (window.matchMedia('(max-width: 768px)').matches) {
-                const c = document.getElementById('chartContainer');
-                c.classList.add('mobile-open');
-                c.classList.remove('mobile-minimized');
-                setTimeout(() => map.invalidateSize(), 320);
-            }
         }
 
         function toggleMobileInfo() {
@@ -1322,6 +1343,15 @@
             setTimeout(() => map.invalidateSize(), 320);
         }
 
+        window._popupsEnabled = false;
+
+        function togglePopups() {
+            window._popupsEnabled = !window._popupsEnabled;
+            const btn = document.getElementById('btnPopups');
+            btn.classList.toggle('active', window._popupsEnabled);
+            if (!window._popupsEnabled) map.closePopup();
+        }
+
         function toggleRightPanel() {
             const collapsed = document.body.classList.toggle('panel-collapsed');
             document.getElementById('panelCollapseBtn').textContent = collapsed ? '›' : '✕';
@@ -1329,12 +1359,17 @@
         }
 
         function showChartPanel(type) {
+            const btnDonut = document.getElementById('btnChartDonut');
+            const btnSeries = document.getElementById('btnChartSeries');
+            // Segundo clic en el mismo botón → cerrar
+            const alreadyActive = (type === 'donut' && btnDonut.classList.contains('active')) ||
+                                   (type === 'series' && btnSeries.classList.contains('active'));
+            if (alreadyActive) { closeChartPanel(); return; }
+
             const container = document.getElementById('chartContainer');
             const mapC = document.getElementById('mapContainer');
             const timeSeries = document.getElementById('timeSeriesChart');
             const dashboard = document.getElementById('dashboardContainer');
-            const btnDonut = document.getElementById('btnChartDonut');
-            const btnSeries = document.getElementById('btnChartSeries');
 
             if (type === 'donut') {
                 document.getElementById('chartTypeLabel').innerHTML = '<b>Distribución de Alertas</b>';
@@ -1352,17 +1387,30 @@
                 btnDonut.classList.remove('active');
             }
 
-            container.classList.add('chart-visible');
-            mapC.classList.add('chart-visible');
+            const isMob = window.matchMedia('(max-width: 768px)').matches;
+            if (isMob) {
+                container.classList.add('mobile-open');
+                container.classList.remove('mobile-minimized');
+            } else {
+                container.classList.add('chart-visible');
+                mapC.classList.add('chart-visible');
+            }
             setTimeout(() => {
                 map.invalidateSize();
                 if (type === 'series') updateTimeSeries();
+                else Plotly.Plots.resize('donutChart');
             }, 320);
         }
 
         function closeChartPanel() {
-            document.getElementById('chartContainer').classList.remove('chart-visible');
-            document.getElementById('mapContainer').classList.remove('chart-visible');
+            const isMob = window.matchMedia('(max-width: 768px)').matches;
+            const container = document.getElementById('chartContainer');
+            if (isMob) {
+                container.classList.remove('mobile-open');
+            } else {
+                container.classList.remove('chart-visible');
+                document.getElementById('mapContainer').classList.remove('chart-visible');
+            }
             document.getElementById('btnChartDonut').classList.remove('active');
             document.getElementById('btnChartSeries').classList.remove('active');
             setTimeout(() => map.invalidateSize(), 320);
