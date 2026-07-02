@@ -42,7 +42,7 @@
             #rightPanel {
                 position: fixed !important;
                 top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
-                width: 78vw !important; height: 100% !important; max-height: 100%;
+                width: 80vw !important; height: 100% !important; max-height: 100%;
                 border-left: 2px solid #ddd !important;
                 border-radius: 0 !important;
                 box-shadow: -4px 0 20px rgba(0,0,0,0.25);
@@ -61,7 +61,7 @@
                 right: 0;
                 transition: right 0.3s ease;
             }
-            #mobileDrawerTab.drawer-open { right: 78vw; }
+            #mobileDrawerTab.drawer-open { right: 80vw; }
 
             /* Ocultar elementos no usados en mobile */
             #mobileInfoBtn { display: none !important; }
@@ -186,6 +186,24 @@
             width: 100%;
             height: 220px;
         }
+        /* Modo donut: gráfico izquierda, tabla derecha */
+        @media (min-width: 769px) {
+            #dashboardContainer.donut-mode {
+                flex-direction: row;
+                align-items: stretch;
+                gap: 12px;
+            }
+            #dashboardContainer.donut-mode #donutChart {
+                flex: 0 0 44%;
+                height: 100%;
+                min-height: 0;
+            }
+            #dashboardContainer.donut-mode .alert-table {
+                flex: 1;
+                align-self: center;
+                font-size: 12px;
+            }
+        }
         .alert-table {
             width: 100%;
             border-collapse: collapse;
@@ -233,14 +251,15 @@
         .panel-title {
             font-size: 16px;
             font-weight: bold;
-            color: #333;
             background: #2c3e50;
             color: white;
-            padding: 10px;
+            padding: 10px 12px;
             margin: -15px -15px 15px -15px;
-            text-align: center;
             border-radius: 4px 4px 0 0;
+            display: flex;
+            align-items: center;
         }
+        #panelTitleText { flex: 1; }
         .collapsible-section {
             margin-bottom: 20px;
         }
@@ -417,22 +436,78 @@
         /* Backdrop mobile — oculto en desktop */
         #mobileBackdrop {
             display: none;
-            position: fixed; top: 0; left: 0; right: 78vw; bottom: 0;
+            position: fixed; top: 0; left: 0; right: 80vw; bottom: 0;
             background: rgba(0,0,0,0.45);
             z-index: 19;
         }
 
         /* Handle (no usado en nueva versión) */
         .mobile-panel-handle { display: none; }
+
+        /* ---- Panel colapsable + gráficos bajo demanda (solo desktop) ---- */
+        @media (min-width: 769px) {
+            #rightPanel { transition: width 0.3s ease; overflow: hidden; }
+            body.panel-collapsed #rightPanel { width: 40px !important; padding: 0 !important; }
+            body.panel-collapsed #rightPanel .collapsible-section,
+            body.panel-collapsed #rightPanel .section-content,
+            body.panel-collapsed #chartIconBar { display: none !important; }
+            body.panel-collapsed #panelTitle {
+                height: 100%; flex-direction: column;
+                justify-content: flex-start; padding: 10px 0;
+                border-radius: 0; margin: 0;
+            }
+            body.panel-collapsed #panelTitleText {
+                writing-mode: vertical-rl; transform: rotate(180deg);
+                margin-top: 12px; font-size: 12px;
+            }
+            body.panel-collapsed #panelCollapseBtn { margin-bottom: 4px; }
+            #mapContainer { transition: right 0.3s ease, bottom 0.3s ease; }
+            #chartContainer { transition: right 0.3s ease; }
+            body.panel-collapsed #mapContainer { right: 40px; }
+            body.panel-collapsed #chartContainer { right: 40px; }
+            /* Gráfico oculto por defecto — se activa con íconos */
+            #chartContainer { display: none; }
+            #chartContainer.chart-visible { display: flex; }
+            #mapContainer { bottom: 0 !important; }
+            #mapContainer.chart-visible { bottom: 45% !important; }
+            #panelCollapseBtn { display: block !important; }
+        }
+        /* Botón colapsar panel */
+        #panelCollapseBtn {
+            display: none;
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            font-size: 15px; width: 26px; height: 26px; border-radius: 50%;
+            cursor: pointer; line-height: 1; padding: 0; flex-shrink: 0;
+        }
+        #panelCollapseBtn:hover { background: rgba(255,255,255,0.35); }
+        /* Barra de íconos de gráficos */
+        #chartIconBar {
+            display: flex; gap: 8px; justify-content: center;
+            padding: 12px 10px; border-top: 1px solid #ddd;
+            margin: 15px -15px -15px -15px; background: #f0f2f5;
+        }
+        .chart-icon-btn {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; padding: 8px 12px; min-width: 90px;
+            background: #34495e; color: white;
+            border: none; border-radius: 6px; cursor: pointer;
+            font-size: 11px; font-weight: 600; transition: background 0.2s;
+        }
+        .chart-icon-btn:hover { background: #2c3e50; }
+        .chart-icon-btn.active { background: #c0392b; }
+        .chart-icon-btn .cib-icon { font-size: 20px; line-height: 1; }
     </style>
 </head>
 <body>
     <div class="container">
     <div id="mapContainer"></div>
     <div id="chartContainer">
-        <div id="chartContainerHeader" onclick="toggleChartPanel()">
-            <span><b>Evolución de Alerta por punto</b></span>
-            <span class="toggle-btn">−</span>
+        <div id="chartContainerHeader">
+            <span id="chartTypeLabel"><b>Evolución de Alerta por punto</b></span>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span class="toggle-btn" onclick="toggleChartPanel()" style="cursor:pointer;" title="Minimizar">−</span>
+                <button onclick="closeChartPanel()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;width:24px;height:24px;border-radius:50%;cursor:pointer;line-height:1;padding:0;" title="Cerrar">✕</button>
+            </div>
         </div>
         <div id="chartContentWrapper">
             <div id="chartAndDashboard">
@@ -443,10 +518,11 @@
     </div>
     <div id="rightPanel">
         <div class="mobile-panel-handle"></div>
-        <div class="panel-title" id="panelTitle" style="position:relative;">
+        <div class="panel-title" id="panelTitle">
             <span id="panelTitleText">Alertas</span>
             <button id="mobileClosePanel" onclick="closeMobileInfo()" aria-label="Cerrar panel"
-                style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;">✕</button>
+                style="display:none;background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;flex-shrink:0;">✕</button>
+            <button id="panelCollapseBtn" onclick="toggleRightPanel()" title="Cerrar panel">✕</button>
         </div>
 
         <!-- Capas Activas -->
@@ -534,6 +610,17 @@
                     <span>En disminución</span>
                 </div>
             </div>
+        </div>
+        <!-- Íconos para abrir gráficos -->
+        <div id="chartIconBar">
+            <button class="chart-icon-btn" id="btnChartDonut" onclick="showChartPanel('donut')" title="Distribución de alertas">
+                <span class="cib-icon">🥧</span>
+                <span>Distribución</span>
+            </button>
+            <button class="chart-icon-btn" id="btnChartSeries" onclick="showChartPanel('series')" title="Evolución temporal">
+                <span class="cib-icon">📈</span>
+                <span>Evolución</span>
+            </button>
         </div>
     </div>
     </div>
@@ -1107,6 +1194,12 @@
         function updateTimeSeries() {
             const container = document.getElementById('timeSeriesChart');
 
+            // Desktop: no hacer nada si el panel de Evolución no está abierto
+            if (!window.matchMedia('(max-width: 768px)').matches &&
+                !document.getElementById('btnChartSeries').classList.contains('active')) {
+                return;
+            }
+
             if (!selectedPoint) {
                 Plotly.purge(container);
                 container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:13px;text-align:center;padding:0 20px;">
@@ -1167,7 +1260,7 @@
 
             Plotly.newPlot(container, [trace], layout, { responsive: true, displayModeBar: false });
 
-            // Mobile: abrir el bottom sheet al seleccionar un punto
+            // Mobile: abrir el bottom sheet
             if (window.matchMedia('(max-width: 768px)').matches) {
                 const c = document.getElementById('chartContainer');
                 c.classList.add('mobile-open');
@@ -1205,30 +1298,56 @@
         function toggleChartPanel() {
             const toggle = document.querySelector('#chartContainerHeader .toggle-btn');
             const container = document.getElementById('chartContainer');
-            const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
-            if (isMobile) {
-                const minimized = container.classList.toggle('mobile-minimized');
-                toggle.textContent = minimized ? '+' : '−';
-                setTimeout(() => map.invalidateSize(), 320);
-                return;
-            }
-
-            // Desktop: minimizar expande el mapa
-            const wrapper = document.getElementById('chartContentWrapper');
-            const mapC = document.getElementById('mapContainer');
-            wrapper.classList.toggle('hidden');
-            const minimized = wrapper.classList.contains('hidden');
+            if (!window.matchMedia('(max-width: 768px)').matches) return;
+            const minimized = container.classList.toggle('mobile-minimized');
             toggle.textContent = minimized ? '+' : '−';
-            if (minimized) {
-                const h = document.getElementById('chartContainerHeader').offsetHeight;
-                container.style.height = h + 'px';
-                mapC.style.bottom = h + 'px';
+            setTimeout(() => map.invalidateSize(), 320);
+        }
+
+        function toggleRightPanel() {
+            const collapsed = document.body.classList.toggle('panel-collapsed');
+            document.getElementById('panelCollapseBtn').textContent = collapsed ? '›' : '✕';
+            setTimeout(() => map.invalidateSize(), 320);
+        }
+
+        function showChartPanel(type) {
+            const container = document.getElementById('chartContainer');
+            const mapC = document.getElementById('mapContainer');
+            const timeSeries = document.getElementById('timeSeriesChart');
+            const dashboard = document.getElementById('dashboardContainer');
+            const btnDonut = document.getElementById('btnChartDonut');
+            const btnSeries = document.getElementById('btnChartSeries');
+
+            if (type === 'donut') {
+                document.getElementById('chartTypeLabel').innerHTML = '<b>Distribución de Alertas</b>';
+                timeSeries.style.display = 'none';
+                dashboard.style.display = '';
+                dashboard.classList.add('donut-mode');
+                btnDonut.classList.add('active');
+                btnSeries.classList.remove('active');
             } else {
-                container.style.height = '';
-                mapC.style.bottom = '';
+                document.getElementById('chartTypeLabel').innerHTML = '<b>Evolución de Alerta por punto</b>';
+                timeSeries.style.display = '';
+                dashboard.style.display = 'none';
+                dashboard.classList.remove('donut-mode');
+                btnSeries.classList.add('active');
+                btnDonut.classList.remove('active');
             }
-            setTimeout(() => map.invalidateSize(), 220);
+
+            container.classList.add('chart-visible');
+            mapC.classList.add('chart-visible');
+            setTimeout(() => {
+                map.invalidateSize();
+                if (type === 'series') updateTimeSeries();
+            }, 320);
+        }
+
+        function closeChartPanel() {
+            document.getElementById('chartContainer').classList.remove('chart-visible');
+            document.getElementById('mapContainer').classList.remove('chart-visible');
+            document.getElementById('btnChartDonut').classList.remove('active');
+            document.getElementById('btnChartSeries').classList.remove('active');
+            setTimeout(() => map.invalidateSize(), 320);
         }
 
         // Carga inicial: manifest.json -> todas las fechas historicas + capa mas reciente en el mapa
@@ -1251,7 +1370,7 @@
                 const maxDate = [latestDateByLayer.SRH, latestDateByLayer.ADA]
                     .filter(Boolean).sort().pop();
                 document.getElementById('panelTitleText').textContent = maxDate
-                    ? `Alertas ${formatDate(maxDate)}`
+                    ? `Alertas: ${formatDate(maxDate)}`
                     : 'Alertas';
 
                 updateDashboard();
