@@ -104,6 +104,20 @@
             #timeSeriesChart { flex: 0 0 200px !important; min-width: 100% !important; }
             #dashboardContainer { flex: 0 0 auto !important; padding-right: 0 !important; }
             #donutChart { height: 160px !important; }
+
+            /* ── Tamaños aumentados para baja visión ── */
+            #rightPanel { font-size: 16px !important; }
+            .panel-title { font-size: 19px !important; padding: 13px 12px !important; }
+            .section-header { font-size: 16px !important; padding: 10px 12px !important; }
+            .section-header .toggle-btn { font-size: 20px !important; }
+            .layer-stats { font-size: 14px !important; }
+            .layer-stats .stats-date { font-size: 12px !important; }
+            .checkbox-group label { font-size: 16px !important; gap: 10px !important; }
+            .checkbox-group input[type="checkbox"] { width: 20px !important; height: 20px !important; }
+            .legend-item span:last-child { font-size: 15px !important; }
+            .chart-icon-btn { font-size: 13px !important; padding: 10px 14px !important; min-width: 100px !important; }
+            .chart-icon-btn .cib-icon { font-size: 26px !important; }
+            #mobileDrawerTab { font-size: 22px !important; width: 28px !important; height: 52px !important; }
         }
         /* RESPONSIVO: TABLETA */
         @media (max-width: 1024px) and (min-width: 769px) {
@@ -614,7 +628,7 @@
         <!-- Íconos para abrir gráficos -->
         <div id="chartIconBar">
             <button class="chart-icon-btn" id="btnChartDonut" onclick="showChartPanel('donut')" title="Distribución de alertas">
-                <span class="cib-icon">🥧</span>
+                <span class="cib-icon">📊</span>
                 <span>Distribución</span>
             </button>
             <button class="chart-icon-btn" id="btnChartSeries" onclick="showChartPanel('series')" title="Evolución temporal">
@@ -908,24 +922,28 @@
             // Badge solo en círculos (●), no en flechas
             const badge = isCircle ? getAlertBadge(alerta) : '';
             const badgeColor = (alerta === 2) ? '#1a1a1a' : 'white';
+            const mob = window.matchMedia('(max-width: 768px)').matches;
+            const fontSize = isCircle ? (mob ? '40px' : '30px') : (mob ? '38px' : '28px');
+            const badgeFontSize = mob ? '14px' : '10px';
+            const iconDim = mob ? 44 : 32;
             const badgeHtml = badge
-                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:10px;font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
+                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:${badgeFontSize};font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
                 : '';
 
-            // Círculos 2px más grandes que flechas
-            const fontSize = isCircle ? '30px' : '28px';
             const arrowTransform = !isCircle ? 'display:inline-block;transform:scaleX(1.4) scaleY(0.7);' : '';
-            const html = `<div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
+            const html = `<div style="position:relative;width:${iconDim}px;height:${iconDim}px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
 
             const marker = L.marker(latlng, {
-                icon: L.divIcon({ html: html, iconSize: [32, 32], className: '' })
+                icon: L.divIcon({ html: html, iconSize: [iconDim, iconDim], className: '' })
             });
 
             const layerLabel = layerDisplayNames[layerName];
             const pointName = props[config.pointNameField] || '-';
 
+            const popupBase = mob ? '15px' : '13px';
+            const popupWidth = mob ? '220px' : '190px';
             let popupContent = `
-                <div style="font-size: 13px; min-width: 190px;">
+                <div style="font-size: ${popupBase}; min-width: ${popupWidth};">
                     <div style="
                         text-align: center;
                         font-size: 18px;
