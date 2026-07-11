@@ -14,14 +14,45 @@
             padding: 0;
             box-sizing: border-box;
         }
+        :root { --headerH: 58px; --panelW: 340px; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
             overflow: hidden;
         }
+        /* ── Header superior ── */
+        #appHeader {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--headerH);
+            background: linear-gradient(90deg, #0d3d56, #1a5276);
+            color: white; z-index: 1500;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 16px; gap: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        #appHeader .hdr-titles { min-width: 0; }
+        #appHeader .hdr-title {
+            font-size: 16px; font-weight: 700; line-height: 1.15;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        #appHeader .hdr-sub { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+        #appHeader .hdr-date-select {
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 13px;
+        }
+        #appHeader .hdr-date-select select {
+            background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 5px; padding: 4px 8px; font-size: 13px; cursor: pointer;
+        }
+        #appHeader .hdr-date-select select option { color: #1a1a1a; }
+        @media (max-width: 768px) {
+            :root { --headerH: 66px; }
+            #appHeader { padding: 6px 12px; }
+            #appHeader .hdr-title { white-space: normal; font-size: 13.5px; }
+            #appHeader .hdr-sub { font-size: 11px; }
+            #appHeader .hdr-date-select label { display: none; }
+        }
         .container {
             display: grid;
-            grid-template-columns: 1fr 280px;
+            grid-template-columns: 1fr var(--panelW);
             grid-template-rows: 55% 45%;
             height: 100vh;
             gap: 0;
@@ -31,18 +62,18 @@
             body { overflow: hidden !important; }
             .container { display: block; }
 
-            /* Mapa pantalla completa */
+            /* Mapa pantalla completa (debajo del header) */
             #mapContainer {
                 position: fixed !important;
-                top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-                width: 100% !important; height: 100% !important;
+                top: var(--headerH) !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+                width: 100% !important; height: auto !important;
                 z-index: 1;
             }
 
             /* Panel lateral → drawer desde la derecha */
             #rightPanel {
                 position: fixed !important;
-                top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
+                top: var(--headerH) !important; right: 0 !important; bottom: 0 !important; left: auto !important;
                 width: 80vw !important; height: 100% !important; max-height: 100%;
                 border-left: 2px solid #ddd !important;
                 border-radius: 0 !important;
@@ -136,14 +167,14 @@
         /* COMPUTADORA */
         @media (min-width: 1025px) {
             .container {
-                grid-template-columns: 1fr 280px;
+                grid-template-columns: 1fr var(--panelW);
             }
         }
         #mapContainer {
             position: absolute;
-            top: 0;
+            top: var(--headerH);
             left: 0;
-            right: 280px;
+            right: var(--panelW);
             bottom: 38%;
             z-index: 1;
         }
@@ -151,7 +182,7 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            right: 280px;
+            right: var(--panelW);
             height: 38%;
             background: #ecf0f1;
             border-top: 2px solid #ddd;
@@ -260,9 +291,9 @@
         }
         #rightPanel {
             position: absolute;
-            top: 0;
+            top: var(--headerH);
             right: 0;
-            width: 280px;
+            width: var(--panelW);
             bottom: 0;
             background: white;
             border-left: 2px solid #ddd;
@@ -458,7 +489,7 @@
         /* Backdrop mobile — oculto en desktop */
         #mobileBackdrop {
             display: none;
-            position: fixed; top: 0; left: 0; right: 80vw; bottom: 0;
+            position: fixed; top: var(--headerH); left: 0; right: 80vw; bottom: 0;
             background: rgba(0,0,0,0.45);
             z-index: 19;
         }
@@ -525,9 +556,86 @@
             .legend-badge { font-size: 12px; }
             .legend-item { margin-bottom: 9px; gap: 12px; }
         }
-        /* Barra de íconos de gráficos */
+        /* ── Selector de variable (colorear por) ── */
+        .var-selector { display: flex; flex-direction: column; gap: 6px; }
+        .var-btn {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 10px; border: 1.5px solid #d5dbe0; border-radius: 8px;
+            background: #f7f9fb; cursor: pointer; text-align: left;
+            font-size: 13px; color: #2c3e50; transition: all 0.15s;
+        }
+        .var-btn:hover { background: #eef3f7; border-color: #b7c2cc; }
+        .var-btn.active { background: #1a5276; color: white; border-color: #14405c; font-weight: 600; }
+        .var-btn .var-ico { font-size: 20px; line-height: 1; flex-shrink: 0; }
+        .var-btn .var-txt { flex: 1; }
+        /* ── Leyenda flotante (control Leaflet, abajo a la derecha) ── */
+        .map-legend {
+            background: rgba(255,255,255,0.94); border-radius: 8px;
+            padding: 8px 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+            font-size: 12px; line-height: 1.3; max-width: 190px;
+        }
+        .map-legend .ml-title { font-weight: 700; margin-bottom: 5px; font-size: 12.5px; color: #1a5276; }
+        .map-legend .ml-row { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+        .map-legend .ml-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.25); }
+        @media (max-width: 768px) {
+            .var-btn { padding: 10px; font-size: 0; gap: 0; justify-content: center; }
+            .var-btn .var-ico { font-size: 24px; }
+            .var-btn .var-txt { display: none; }
+            .var-selector { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+            .var-btn { flex: 1 1 40%; }
+            .map-legend { font-size: 12px; max-width: 150px; padding: 7px 9px; }
+        }
+        /* ── Modal de tabla de puntos ── */
+        .table-modal {
+            display: none;
+            position: fixed; inset: 0; z-index: 3000;
+            background: rgba(0,0,0,0.5);
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .table-modal.open { display: flex; }
+        .table-modal-box {
+            background: white; border-radius: 10px;
+            width: 100%; max-width: 900px; max-height: 85vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+        }
+        .table-modal-head {
+            background: #1a5276; color: white;
+            padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
+            font-weight: 700; font-size: 15px; gap: 10px;
+        }
+        .table-modal-head .tm-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .tm-btn {
+            background: #27ae60; color: white; border: none; border-radius: 6px;
+            padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap;
+        }
+        .tm-btn:hover { background: #219150; }
+        .tm-close {
+            background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%;
+            width: 28px; height: 28px; cursor: pointer; font-size: 16px; line-height: 1; flex-shrink: 0;
+        }
+        .tm-close:hover { background: rgba(255,255,255,0.35); }
+        .table-modal-body { overflow: auto; padding: 0; }
+        table.data-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+        table.data-table th, table.data-table td {
+            border: 1px solid #e0e0e0; padding: 6px 9px; text-align: left; white-space: nowrap;
+        }
+        table.data-table thead th {
+            position: sticky; top: 0; background: #eaf1f6; color: #1a5276; z-index: 1;
+        }
+        table.data-table tbody tr:nth-child(even) { background: #f7f9fb; }
+        table.data-table td.info-cell { white-space: normal; min-width: 200px; max-width: 320px; }
+        @media (max-width: 768px) {
+            .table-modal { padding: 8px; }
+            .table-modal-box { max-height: 90vh; }
+            .table-modal-head { font-size: 13px; }
+            table.data-table { font-size: 12px; }
+            table.data-table th, table.data-table td { padding: 5px 7px; }
+        }
+        /* Barra de íconos de gráficos (grilla 2x2) */
         #chartIconBar {
-            display: flex; gap: 8px; justify-content: center;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
             padding: 12px 10px; border-top: 1px solid #ddd;
             margin: 15px -15px -15px -15px; background: #f0f2f5;
         }
@@ -544,6 +652,16 @@
     </style>
 </head>
 <body>
+    <header id="appHeader">
+        <div class="hdr-titles">
+            <div class="hdr-title">Monitoreo Satelital de Calidad Trófica y Alerta por Cianobacterias</div>
+            <div class="hdr-sub" id="hdrDate">Cargando…</div>
+        </div>
+        <div class="hdr-date-select">
+            <label for="dateSelect">Fecha:</label>
+            <select id="dateSelect" onchange="onDateChange(this.value)"></select>
+        </div>
+    </header>
     <div class="container">
     <div id="mapContainer"></div>
     <div id="chartContainer">
@@ -574,9 +692,9 @@
         <div class="collapsible-section">
             <div class="section-header" onclick="toggleSection(this)">
                 <span>Capas activas</span>
-                <span class="toggle-btn">+</span>
+                <span class="toggle-btn">−</span>
             </div>
-            <div class="section-content hidden">
+            <div class="section-content">
                 <div class="checkbox-group">
                     <label>
                         <input type="checkbox" id="srh-toggle" checked onchange="updateMap()">
@@ -594,67 +712,39 @@
             </div>
         </div>
 
-        <!-- Leyenda -->
+        <!-- Colorear por variable -->
         <div class="collapsible-section">
             <div class="section-header" onclick="toggleSection(this)">
-                <span>Leyenda</span>
-                <span class="toggle-btn">+</span>
+                <span>Alertas</span>
+                <span class="toggle-btn">−</span>
             </div>
-            <div class="section-content hidden">
-                <div style="margin-bottom:8px;"><strong>Nivel de alerta</strong></div>
-                <div class="legend-item">
-                    <span class="legend-sym">
-                        <span class="legend-dot legend-shadow-w" style="color:#28a745;">●</span>
-                    </span>
-                    <span class="legend-label">Alerta 1 (Verde)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-sym">
-                        <span class="legend-dot legend-shadow-d" style="color:#ffe600;">●</span>
-                        <span class="legend-badge" style="color:#1a1a1a;">!</span>
-                    </span>
-                    <span class="legend-label">Alerta 2 (Amarillo)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-sym">
-                        <span class="legend-dot legend-shadow-w" style="color:#ff9800;">●</span>
-                        <span class="legend-badge" style="color:#fff;">✕</span>
-                    </span>
-                    <span class="legend-label">Alerta 3 (Naranja)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-sym">
-                        <span class="legend-dot legend-shadow-w" style="color:#dc3545;">●</span>
-                        <span class="legend-badge" style="color:#fff;">✕</span>
-                    </span>
-                    <span class="legend-label">Alerta 4 (Rojo)</span>
-                </div>
-                <div style="margin-top:12px;margin-bottom:8px;"><strong>Tendencias</strong></div>
-                <div class="legend-item">
-                    <span class="legend-sym">
-                        <span class="legend-dot legend-shadow-w" style="color:#555;">●</span>
-                    </span>
-                    <span class="legend-label">Estable</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-sym">
-                        <span class="legend-arrow">⬆</span>
-                    </span>
-                    <span class="legend-label">En aumento</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-sym">
-                        <span class="legend-arrow">⬇</span>
-                    </span>
-                    <span class="legend-label">En disminución</span>
+            <div class="section-content">
+                <div id="varSelector" class="var-selector">
+                    <button class="var-btn active" data-var="cyano" onclick="setVariable('cyano')" title="Alerta cianobacterias">
+                        <span class="var-ico">🦠</span><span class="var-txt">Cianobacterias</span>
+                    </button>
+                    <button class="var-btn" data-var="trophic" onclick="setVariable('trophic')" title="Alerta estado trófico">
+                        <span class="var-ico">🌿</span><span class="var-txt">Estado trófico</span>
+                    </button>
+                    <button class="var-btn" data-var="turb" onclick="setVariable('turb')" title="Alerta turbidez">
+                        <span class="var-ico">🌫️</span><span class="var-txt">Turbidez</span>
+                    </button>
+                    <button class="var-btn" data-var="mon" onclick="setVariable('mon')" title="Alerta materia orgánica disuelta">
+                        <span class="var-ico">🍂</span><span class="var-txt">Materia orgánica disuelta</span>
+                    </button>
                 </div>
             </div>
         </div>
+
         <!-- Íconos para abrir gráficos -->
         <div id="chartIconBar">
             <button class="chart-icon-btn" id="btnPopups" onclick="togglePopups()" title="Mostrar info de puntos">
                 <span class="cib-icon">💬</span>
                 <span>Info</span>
+            </button>
+            <button class="chart-icon-btn" id="btnTable" onclick="openDataTable()" title="Tabla de puntos">
+                <span class="cib-icon">📋</span>
+                <span>Tabla</span>
             </button>
             <button class="chart-icon-btn" id="btnChartDonut" onclick="showChartPanel('donut')" title="Distribución de alertas">
                 <span class="cib-icon">📊</span>
@@ -666,6 +756,20 @@
             </button>
         </div>
     </div>
+    </div>
+
+    <!-- Modal de tabla de puntos -->
+    <div id="tableModal" class="table-modal">
+        <div class="table-modal-box">
+            <div class="table-modal-head">
+                <span id="tableModalTitle">Tabla de puntos</span>
+                <div class="tm-actions">
+                    <button class="tm-btn" onclick="downloadTableCSV()">⬇ Descargar CSV</button>
+                    <button class="tm-close" onclick="closeDataTable()" aria-label="Cerrar">✕</button>
+                </div>
+            </div>
+            <div class="table-modal-body" id="tableModalBody"></div>
+        </div>
     </div>
 
     <!-- Mobile: backdrop y pestaña lateral -->
@@ -872,9 +976,9 @@
             SRH: {
                 pointNameField: 'PUNTO',
                 idField: 'PUNTO',
-                nameField: 'NOMBRE CON',
+                nameField: 'NOMBRE',
                 popupFields: [
-                    { key: 'NOMBRE CON', label: 'Nombre' },
+                    { key: 'NOMBRE', label: 'Nombre' },
                     { key: 'MUNICIPIO', label: 'Municipio' },
                     { key: 'info', label: 'Info' },
                     { key: 'Acciones', label: 'Acciones' }
@@ -903,8 +1007,112 @@
             4: '#dc3545'
         };
 
+        // ── Sistema "colorear por variable" ──
+        // Nivel 1-4 → verde/amarillo/naranja/rojo; 0 = sin datos (gris)
+        const VAR_COLORS = { 0: '#9e9e9e', 1: '#28a745', 2: '#ffe600', 3: '#ff9800', 4: '#dc3545' };
+
+        function _norm(s) { return (s == null ? '' : String(s)).trim().toLowerCase(); }
+        // Búsqueda de campo tolerante a mayúsculas/minúsculas, puntos y espacios
+        // (ej. "A. TURB" == "A Turb" == "A.Turb"; "PACiano" == "PACIano")
+        function _getField(props, keys) {
+            const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const wanted = keys.map(norm);
+            for (const k of Object.keys(props)) {
+                if (wanted.indexOf(norm(k)) !== -1 && String(props[k]).trim() !== '') return props[k];
+            }
+            return '';
+        }
+        function levelCyano(props) { const n = parseInt(props.Alerta); return (n >= 1 && n <= 4) ? n : 0; }
+        function levelTrophic(props) {
+            const s = _norm(_getField(props, ['E. Trofico']));
+            if (s.indexOf('oligo') >= 0) return 1;
+            if (s.indexOf('meso') >= 0) return 2;
+            if (s.indexOf('hiper') >= 0) return 4;   // hipereutrofico antes que eutrofico
+            if (s.indexOf('eutro') >= 0) return 3;
+            return 0;
+        }
+        function levelCategory(val) {
+            const s = _norm(val);
+            if (s.indexOf('muy') >= 0) return 4;      // "muy alta"
+            if (s === 'alta') return 3;
+            if (s === 'media') return 2;
+            if (s === 'baja') return 1;
+            return 0;
+        }
+        const VARIABLE_DEFS = {
+            cyano:   { label: 'Cianobacterias', icon: '🦠', level: (p) => levelCyano(p),
+                       names: ['Riesgo bajo/nulo', 'Riesgo medio', 'Riesgo alto', 'Riesgo muy alto'] },
+            trophic: { label: 'Estado trófico', icon: '🌿', level: (p) => levelTrophic(p),
+                       names: ['Oligotrófico', 'Mesotrófico', 'Eutrófico', 'Hipereutrófico'] },
+            turb:    { label: 'Turbidez', icon: '🌫️', level: (p) => levelCategory(_getField(p, ['A. TURB', 'A.TURB', 'A Turb'])),
+                       names: ['Baja', 'Media', 'Alta', 'Muy alta'] },
+            mon:     { label: 'Materia orgánica disuelta', icon: '🍂', level: (p) => levelCategory(_getField(p, ['A. MON', 'A.MON', 'A MON'])),
+                       names: ['Baja', 'Media', 'Alta', 'Muy alta'] }
+        };
+        let activeVariable = 'cyano';
+        function getVarLevel(props) { return VARIABLE_DEFS[activeVariable].level(props); }
+
+        // Colores más oscuros para los "badge" de categoría en los popups (legibles con texto blanco)
+        const BADGE_COLORS = { 0: '#777', 1: '#1e7e34', 2: '#c69a10', 3: '#d35400', 4: '#c0392b' };
+        function catBadge(text, level) {
+            const bg = BADGE_COLORS[level] || '#777';
+            return `<span style="display:inline-block;background:${bg};color:#fff;font-weight:700;padding:1px 8px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${text}</span>`;
+        }
+        function fmtNum(v) { const n = parseFloat(v); return isNaN(n) ? null : n; }
+
+        // Línea "Info" con prefijo coloreado (igual que antes), para cianobacterias
+        function infoLine(props) {
+            let value = hasValue(props.info) ? props.info : '-';
+            if (value !== '-') {
+                const alertStyles = {
+                    'alerta verde': '#1e7e34', 'alerta amarillo': '#d4a017',
+                    'alerta naranja': '#d35400', 'alerta roja': '#c0392b'
+                };
+                const commaIdx = value.indexOf(',');
+                const prefix = commaIdx !== -1 ? value.substring(0, commaIdx) : value;
+                const rest = commaIdx !== -1 ? value.substring(commaIdx) : '';
+                const prefixLower = prefix.toLowerCase().trim();
+                let matched = null;
+                for (const k of Object.keys(alertStyles)) { if (prefixLower.includes(k)) { matched = k; break; } }
+                if (matched) {
+                    value = `<span style="display:inline-block;background:${alertStyles[matched]};color:#fff;font-weight:700;padding:1px 7px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${prefix}</span>${rest}`;
+                }
+            }
+            return `<div style="padding: 2px 4px;"><strong>Info:</strong> ${value}</div>`;
+        }
+
+        // Bloque del popup específico de cada variable
+        function buildVarBlock(props) {
+            const lvl = getVarLevel(props);
+            const row = (label, val) => `<div style="padding: 2px 4px;"><strong>${label}:</strong> ${val}</div>`;
+            if (activeVariable === 'cyano') {
+                const pac = _getField(props, ['PACiano', 'PACIano']) || '-';
+                return infoLine(props) + row('Precisión del alerta', pac);
+            }
+            if (activeVariable === 'trophic') {
+                const cat = _getField(props, ['E. Trofico']) || 'sin datos';
+                const cloro = fmtNum(props.Cloro);
+                return row('Estado Trófico', catBadge(cat, lvl)) +
+                       row('Concentración de clorofila', cloro != null ? Math.round(cloro) + ' µg/l' : '-');
+            }
+            if (activeVariable === 'turb') {
+                const cat = _getField(props, ['A. TURB', 'A.TURB', 'A Turb']) || 'sin datos';
+                const t = fmtNum(props.Turb);
+                return row('Turbidez', catBadge(cat, lvl)) +
+                       row('Valor de turbidez', t != null ? Math.round(t) + ' NTU' : '-');
+            }
+            if (activeVariable === 'mon') {
+                const cat = _getField(props, ['A. MON', 'A.MON', 'A MON']) || 'sin datos';
+                const m = fmtNum(props.MON);
+                return row('Materia orgánica disuelta', catBadge(cat, lvl)) +
+                       row('Índice de MOD', m != null ? String(m) : '-');
+            }
+            return '';
+        }
+
         let geoJsonLayers = {};           // capa visible en el mapa (fecha mas reciente por capa)
-        const historicalData = { SRH: {}, ADA: {} }; // fecha -> [{id,alerta}] por punto, para la serie temporal
+        const historicalData = { SRH: {}, ADA: {} }; // fecha -> {id: props} por punto, para la serie temporal
+        const datedData = { SRH: {}, ADA: {} };      // fecha -> GeoJSON completo (con geometría), para cambiar de fecha en el mapa
         const latestDateByLayer = {};
         let selectedPoint = null;         // { layerName, id, name } - punto elegido en el mapa
         let highlightMarker = null;       // resalta el punto seleccionado en el mapa
@@ -929,6 +1137,15 @@
             return '●';
         }
 
+        // Tendencia: antes venía en 'Dif'; ahora se deriva del emoji 'Dinamica'
+        // ⬆️ = aumento (1), ⬇️ = disminución (-1), 🟰 / SIN DATOS = estable (0)
+        function getDif(props) {
+            const d = String(props.Dinamica || '');
+            if (d.indexOf('⬆') >= 0) return 1;
+            if (d.indexOf('⬇') >= 0) return -1;
+            return 0;
+        }
+
         function getAlertBadge(alerta) {
             if (alerta === 2) return '!';
             if (alerta === 3 || alerta === 4) return '✕';
@@ -937,31 +1154,39 @@
 
         function createMarker(feature, latlng, layerName) {
             const props = feature.properties;
-            const alerta = props.Alerta || 1;
-            const dif = props.Dif || 0;
-            const color = alertColors[alerta] || alertColors[1];
-            const symbol = getSymbol(dif);
-            const isCircle = dif === 0;
+            const level = getVarLevel(props);          // 0-4 según la variable activa
+            const color = VAR_COLORS[level];
             const config = layerConfig[layerName];
-
-            // Bordes: gris oscuro para amarillo, blanco para el resto
-            const borderColor = (alerta === 2) ? '#555' : 'white';
-            const textShadow = `-1px -1px 0 ${borderColor}, 1px -1px 0 ${borderColor}, -1px 1px 0 ${borderColor}, 1px 1px 0 ${borderColor}`;
-
-            // Badge solo en círculos (●), no en flechas
-            const badge = isCircle ? getAlertBadge(alerta) : '';
-            const badgeColor = (alerta === 2) ? '#1a1a1a' : 'white';
-            // En celular los círculos se ven más chicos; las flechas quedan igual
             const isMob = window.matchMedia('(max-width: 768px)').matches;
-            const fontSize = isCircle ? (isMob ? '23px' : '30px') : '28px';
-            const badgeFont = (isCircle && isMob) ? '8px' : '10px';
-            const iconDim = (isCircle && isMob) ? 26 : 32;
-            const badgeHtml = badge
-                ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:${badgeFont};font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
-                : '';
+            const isCyano = activeVariable === 'cyano';
 
-            const arrowTransform = !isCircle ? 'display:inline-block;transform:scaleX(1.4) scaleY(0.7);' : '';
-            const html = `<div style="position:relative;width:${iconDim}px;height:${iconDim}px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
+            let html, iconDim;
+            if (level === 0) {
+                // Sin datos: punto muy pequeño, en TODAS las variables (incl. cianobacterias)
+                iconDim = 4;
+                html = `<div style="width:${iconDim}px;height:${iconDim}px;border-radius:50%;background:#9e9e9e;opacity:0.85;"></div>`;
+            } else if (!isCyano) {
+                // Trófico / Turbidez / MON: punto relleno con borde blanco, sin flechas
+                iconDim = isMob ? 15 : 18;
+                html = `<div style="width:${iconDim}px;height:${iconDim}px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 2px rgba(0,0,0,0.55);"></div>`;
+            } else {
+                // Cianobacterias: relleno + flecha de tendencia (Dinamica) + badge
+                const dif = getDif(props);
+                const symbol = getSymbol(dif);
+                const isCircle = dif === 0;
+                const borderColor = (level === 2) ? '#555' : 'white';
+                const textShadow = `-1px -1px 0 ${borderColor}, 1px -1px 0 ${borderColor}, -1px 1px 0 ${borderColor}, 1px 1px 0 ${borderColor}`;
+                const badge = isCircle ? getAlertBadge(level) : '';
+                const badgeColor = (level === 2) ? '#1a1a1a' : 'white';
+                const fontSize = isCircle ? (isMob ? '26px' : '30px') : (isMob ? '30px' : '28px');
+                const badgeFont = (isCircle && isMob) ? '9px' : '10px';
+                iconDim = (isCircle && isMob) ? 28 : 32;
+                const badgeHtml = badge
+                    ? `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-25%);color:${badgeColor};font-size:${badgeFont};font-weight:700;line-height:1;pointer-events:none;">${badge}</span>`
+                    : '';
+                const arrowTransform = !isCircle ? 'display:inline-block;transform:scaleX(1.4) scaleY(0.7);' : '';
+                html = `<div style="position:relative;width:${iconDim}px;height:${iconDim}px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:visible;"><span style="font-size:${fontSize};color:${color};text-shadow:${textShadow};${arrowTransform}">${symbol}</span>${badgeHtml}</div>`;
+            }
 
             const marker = L.marker(latlng, {
                 icon: L.divIcon({ html: html, iconSize: [iconDim, iconDim], className: '' })
@@ -1000,35 +1225,15 @@
                     ">${pointName}</div>
             `;
 
+            // Campos de identidad comunes (todo menos info/Acciones/nombre del punto)
             config.popupFields.forEach(({ key, label }) => {
-                if (key === config.pointNameField) return;
-
-                let value = hasValue(props[key]) ? props[key] : '-';
-
-                if (key === 'info' && value !== '-') {
-                    const alertStyles = {
-                        'alerta verde':    { bg: '#1e7e34', color: '#ffffff' },
-                        'alerta amarillo': { bg: '#d4a017', color: '#ffffff' },
-                        'alerta naranja':  { bg: '#d35400', color: '#ffffff' },
-                        'alerta roja':     { bg: '#c0392b', color: '#ffffff' }
-                    };
-                    const commaIdx = value.indexOf(',');
-                    let prefix = commaIdx !== -1 ? value.substring(0, commaIdx) : value;
-                    let rest   = commaIdx !== -1 ? value.substring(commaIdx) : '';
-                    const prefixLower = prefix.toLowerCase().trim();
-                    let matched = null;
-                    for (const k of Object.keys(alertStyles)) {
-                        if (prefixLower.includes(k)) { matched = k; break; }
-                    }
-                    if (matched) {
-                        const s = alertStyles[matched];
-                        value = `<span style="display:inline-block;background:${s.bg};color:${s.color};font-weight:700;padding:1px 7px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${prefix}</span>${rest}`;
-                    }
-                }
-
-                const fontSize = key === 'Acciones' ? 'font-size: 14px;' : '';
-                popupContent += `<div style="padding: 2px 4px; ${fontSize}"><strong>${label}:</strong> ${value}</div>`;
+                if (key === config.pointNameField || key === 'info' || key === 'Acciones') return;
+                const value = hasValue(props[key]) ? props[key] : '-';
+                popupContent += `<div style="padding: 2px 4px;"><strong>${label}:</strong> ${value}</div>`;
             });
+
+            // Bloque específico de la variable activa
+            popupContent += buildVarBlock(props);
 
             // Notas chicas: S2 Fecha / S3 Fecha, solo si tienen datos
             const notes = notesFields
@@ -1088,16 +1293,16 @@
                 .then(res => res.json())
                 .then(data => {
                     const idField = layerConfig[layerName].idField;
-                    const points = [];
+                    // Guardar todas las propiedades por punto (id -> props) para poder
+                    // graficar la evolución de cualquier variable en el tiempo
+                    const byId = {};
                     data.features.forEach(feature => {
                         if (feature.geometry && feature.geometry.coordinates) {
-                            points.push({
-                                id: feature.properties[idField],
-                                alerta: feature.properties.Alerta || 1
-                            });
+                            byId[feature.properties[idField]] = feature.properties;
                         }
                     });
-                    historicalData[layerName][date] = points;
+                    historicalData[layerName][date] = byId;
+                    datedData[layerName][date] = data;
 
                     if (date === latestDateByLayer[layerName]) {
                         const featureGroup = L.featureGroup();
@@ -1161,57 +1366,57 @@
         function updateDashboard() {
             const visibleFeatures = getVisibleFeatures();
             const total = visibleFeatures.length;
+            const def = VARIABLE_DEFS[activeVariable];
+            const isCyano = activeVariable === 'cyano';
 
-            const alertCounts = {
-                1: { stable: 0, increase: 0, decrease: 0, total: 0 },
-                2: { stable: 0, increase: 0, decrease: 0, total: 0 },
-                3: { stable: 0, increase: 0, decrease: 0, total: 0 },
-                4: { stable: 0, increase: 0, decrease: 0, total: 0 }
-            };
-
+            // Conteo por nivel (0 = sin datos) de la variable activa
+            const counts = {};
+            [0, 1, 2, 3, 4].forEach(lv => counts[lv] = { total: 0, stable: 0, increase: 0, decrease: 0 });
             visibleFeatures.forEach(({ feature }) => {
-                const alerta = feature.properties.Alerta || 1;
-                const dif = feature.properties.Dif || 0;
-
-                alertCounts[alerta].total++;
-                if (dif === 0) alertCounts[alerta].stable++;
-                if (dif === 1) alertCounts[alerta].increase++;
-                if (dif === -1) alertCounts[alerta].decrease++;
+                const lv = getVarLevel(feature.properties);
+                const dif = getDif(feature.properties);
+                counts[lv].total++;
+                if (dif === 0) counts[lv].stable++;
+                else if (dif === 1) counts[lv].increase++;
+                else counts[lv].decrease++;
             });
 
             const pct = (n) => total > 0 ? Math.round((n / total) * 100) : 0;
-            const levelColors = { 1: '#28a745', 2: '#ffe600', 3: '#ff9800', 4: '#dc3545' };
-            const levelNames  = { 1: 'Verde', 2: 'Amarillo', 3: 'Naranja', 4: 'Rojo' };
+            const levelName = (lv) => lv === 0 ? 'Sin datos' : def.names[lv - 1];
 
-            const tableRows = [4, 3, 2, 1].map(lv => {
-                const c = alertCounts[lv];
-                const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${levelColors[lv]};vertical-align:middle;margin-right:5px;"></span>`;
-                return `<tr>
-                    <td>${dot}Alerta ${lv} (${levelNames[lv]})</td>
-                    <td>${c.total}</td>
-                    <td>${pct(c.total)}%</td>
-                    <td>${c.stable}</td>
-                    <td>${c.increase}</td>
-                    <td>${c.decrease}</td>
-                </tr>`;
+            // Tabla: niveles 4→1 y "sin datos"; columnas de tendencia solo en cianobacterias
+            const order = [4, 3, 2, 1, 0];
+            const tableRows = order.map(lv => {
+                const c = counts[lv];
+                const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${VAR_COLORS[lv]};vertical-align:middle;margin-right:5px;"></span>`;
+                const trend = isCyano ? `<td>${c.stable}</td><td>${c.increase}</td><td>${c.decrease}</td>` : '';
+                return `<tr><td>${dot}${levelName(lv)}</td><td>${c.total}</td><td>${pct(c.total)}%</td>${trend}</tr>`;
             }).join('');
+
+            const thead = isCyano
+                ? `<tr><th>Nivel</th><th>N</th><th>%</th><th>Est</th><th>⬆</th><th>⬇</th></tr>`
+                : `<tr><th>Nivel</th><th>N</th><th>%</th></tr>`;
+            const totalTail = isCyano ? `<td colspan="3"></td>` : '';
 
             document.getElementById('dashboardContainer').innerHTML = `
                 <div id="donutChart"></div>
                 <table class="alert-table">
-                    <thead><tr><th>Nivel</th><th>N</th><th>%</th><th>Est</th><th>⬆</th><th>⬇</th></tr></thead>
+                    <thead>${thead}</thead>
                     <tbody>
                         ${tableRows}
-                        <tr><td><strong>Total</strong></td><td><strong>${total}</strong></td><td><strong>100%</strong></td><td colspan="3"></td></tr>
+                        <tr><td><strong>Total</strong></td><td><strong>${total}</strong></td><td><strong>100%</strong></td>${totalTail}</tr>
                     </tbody>
                 </table>`;
 
+            // Donut: solo niveles con dato (sin "Sin datos")
+            const donutOrder = [4, 3, 2, 1];
+            const dataTotal = donutOrder.reduce((s, lv) => s + counts[lv].total, 0);
             Plotly.newPlot('donutChart', [{
                 type: 'pie',
                 hole: 0.55,
-                values: [alertCounts[4].total, alertCounts[3].total, alertCounts[2].total, alertCounts[1].total],
-                labels: ['Alerta 4 (Rojo)', 'Alerta 3 (Naranja)', 'Alerta 2 (Amarillo)', 'Alerta 1 (Verde)'],
-                marker: { colors: ['#dc3545', '#ff9800', '#ffe600', '#28a745'], line: { color: 'white', width: 2 } },
+                values: donutOrder.map(lv => counts[lv].total),
+                labels: donutOrder.map(lv => levelName(lv)),
+                marker: { colors: donutOrder.map(lv => VAR_COLORS[lv]), line: { color: 'white', width: 2 } },
                 textinfo: 'percent',
                 textfont: { size: 11 },
                 hovertemplate: '<b>%{label}</b><br>%{value} puntos (%{percent})<extra></extra>',
@@ -1220,7 +1425,7 @@
             }], {
                 showlegend: false,
                 margin: { l: 5, r: 5, t: 5, b: 5 },
-                annotations: [{ text: `<b>${total}</b><br>puntos`, x: 0.5, y: 0.5, font: { size: 13, color: '#333' }, showarrow: false }],
+                annotations: [{ text: `<b>${dataTotal}</b><br>con dato`, x: 0.5, y: 0.5, font: { size: 13, color: '#333' }, showarrow: false }],
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)'
             }, { responsive: true, displayModeBar: false });
@@ -1229,18 +1434,20 @@
         function getPointHistory() {
             const { layerName, id } = selectedPoint;
             const dates = Object.keys(historicalData[layerName] || {}).sort();
+            const def = VARIABLE_DEFS[activeVariable];
 
             const xDates = [];
-            const alertas = [];
+            const levels = [];
             dates.forEach(date => {
-                const found = (historicalData[layerName][date] || []).find(p => p.id === id);
-                if (found) {
+                const props = (historicalData[layerName][date] || {})[id];
+                if (props) {
+                    const lv = def.level(props);
                     xDates.push(date);
-                    alertas.push(found.alerta);
+                    levels.push(lv >= 1 ? lv : null);   // sin datos → hueco
                 }
             });
 
-            return { xDates, alertas };
+            return { xDates, levels };
         }
 
         function updateTimeSeries() {
@@ -1255,21 +1462,23 @@
             if (!selectedPoint) {
                 Plotly.purge(container);
                 container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:13px;text-align:center;padding:0 20px;">
-                    Hacé clic en un punto del mapa para ver la evolución de su nivel de Alerta en el tiempo.
+                    Hacé clic en un punto del mapa para ver la evolución de la variable seleccionada en el tiempo.
                 </div>`;
                 return;
             }
             container.innerHTML = '';
 
-            const { xDates, alertas } = getPointHistory();
+            const def = VARIABLE_DEFS[activeVariable];
+            const { xDates, levels } = getPointHistory();
             const xIsoDates = xDates.map(toISODate);
-            const markerColors = alertas.map(a => alertColors[a] || '#999');
+            const markerColors = levels.map(l => l ? VAR_COLORS[l] : 'rgba(0,0,0,0)');
+            const hoverText = levels.map(l => l ? def.names[l - 1] : 'Sin datos');
 
             const bands = [1, 2, 3, 4].map(level => ({
                 type: 'rect',
                 xref: 'paper', x0: 0, x1: 1,
                 yref: 'y', y0: level - 0.5, y1: level + 0.5,
-                fillcolor: alertColors[level],
+                fillcolor: VAR_COLORS[level],
                 opacity: 0.32,
                 line: { width: 0 },
                 layer: 'below'
@@ -1277,19 +1486,21 @@
 
             const trace = {
                 x: xIsoDates,
-                y: alertas,
+                y: levels,
+                text: hoverText,
                 mode: 'lines+markers',
                 line: { color: '#34495e', width: 2 },
-                marker: { color: markerColors, size: 10, line: { color: '#34495e', width: 1 } },
-                hovertemplate: '<b>%{x|%d/%m/%Y}</b><br>Alerta %{y}<extra></extra>',
+                marker: { color: markerColors, size: 11, line: { color: '#34495e', width: 1 } },
+                hovertemplate: '<b>%{x|%d/%m/%Y}</b><br>%{text}<extra></extra>',
+                connectgaps: false,
                 name: selectedPoint.name
             };
 
             const layout = {
-                title: { text: `${selectedPoint.name} (${layerDisplayNames[selectedPoint.layerName]})`, font: { size: 13 } },
+                title: { text: `${selectedPoint.name} (${layerDisplayNames[selectedPoint.layerName]}) · ${def.label}`, font: { size: 12 } },
                 shapes: bands,
                 showlegend: false,
-                margin: { l: 80, r: 15, t: 22, b: 45 },
+                margin: { l: 115, r: 15, t: 26, b: 45 },
                 font: { size: 11 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
@@ -1302,11 +1513,12 @@
                     tickfont: { size: 10 }
                 },
                 yaxis: {
-                    title: 'Nivel de Alerta',
+                    title: '',
                     tickvals: [1, 2, 3, 4],
-                    ticktext: ['1 - Verde', '2 - Amarillo', '3 - Naranja', '4 - Rojo'],
+                    ticktext: def.names,
                     range: [0.5, 4.5],
-                    showgrid: false
+                    showgrid: false,
+                    tickfont: { size: 10 }
                 }
             };
 
@@ -1377,14 +1589,14 @@
             const dashboard = document.getElementById('dashboardContainer');
 
             if (type === 'donut') {
-                document.getElementById('chartTypeLabel').innerHTML = '<b>Distribución de Alertas</b>';
+                document.getElementById('chartTypeLabel').innerHTML = '<b>' + distributionTitle() + '</b>';
                 timeSeries.style.display = 'none';
                 dashboard.style.display = '';
                 dashboard.classList.add('donut-mode');
                 btnDonut.classList.add('active');
                 btnSeries.classList.remove('active');
             } else {
-                document.getElementById('chartTypeLabel').innerHTML = '<b>Evolución de Alerta por punto</b>';
+                document.getElementById('chartTypeLabel').innerHTML = '<b>' + seriesTitle() + '</b>';
                 timeSeries.style.display = '';
                 dashboard.style.display = 'none';
                 dashboard.classList.remove('donut-mode');
@@ -1421,6 +1633,156 @@
             setTimeout(() => map.invalidateSize(), 320);
         }
 
+        function distributionTitle() {
+            return 'Distribución de Alertas — ' + VARIABLE_DEFS[activeVariable].label;
+        }
+        function seriesTitle() {
+            return 'Evolución — ' + VARIABLE_DEFS[activeVariable].label;
+        }
+
+        // ── Cambiar la variable activa (colorear por) ──
+        function setVariable(v) {
+            if (!VARIABLE_DEFS[v] || v === activeVariable) return;
+            activeVariable = v;
+            document.querySelectorAll('#varSelector .var-btn').forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-var') === v);
+            });
+            renderMarkers();
+            buildLegend();
+            // Si el panel de Distribución está abierto, actualizar su título
+            if (document.getElementById('btnChartDonut').classList.contains('active')) {
+                document.getElementById('chartTypeLabel').innerHTML = '<b>' + distributionTitle() + '</b>';
+            }
+            // Si el panel de Evolución está abierto, actualizar título y serie
+            if (document.getElementById('btnChartSeries').classList.contains('active')) {
+                document.getElementById('chartTypeLabel').innerHTML = '<b>' + seriesTitle() + '</b>';
+                updateTimeSeries();
+            }
+        }
+
+        // Reconstruye los marcadores de cada capa con el coloreado de la variable activa
+        function renderMarkers() {
+            searchIndex.length = 0;
+            layerNames.forEach(layerName => {
+                const entry = geoJsonLayers[layerName];
+                if (!entry) return;
+                map.removeLayer(entry.featureGroup);
+                const fg = L.featureGroup();
+                entry.data.features.forEach(feature => {
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        const marker = createMarker(feature,
+                            [feature.geometry.coordinates[1], feature.geometry.coordinates[0]], layerName);
+                        fg.addLayer(marker);
+                    }
+                });
+                entry.featureGroup = fg;
+                // Visibilidad según el checkbox de la capa
+                if (document.getElementById(layerToggles[layerName]).checked) fg.addTo(map);
+            });
+            updateDashboard();
+        }
+
+        // Leyenda flotante (control Leaflet, abajo a la derecha)
+        let legendControl = null;
+        function buildLegend() {
+            const def = VARIABLE_DEFS[activeVariable];
+            const isCyano = activeVariable === 'cyano';
+            const swatch = (c) => `<span class="ml-dot" style="background:${c}"></span>`;
+            let html = `<div class="ml-title">${def.icon} ${def.label}</div>`;
+            for (let lv = 1; lv <= 4; lv++) {
+                html += `<div class="ml-row">${swatch(VAR_COLORS[lv])}${def.names[lv - 1]}</div>`;
+            }
+            html += `<div class="ml-row">${swatch(VAR_COLORS[0])}Sin datos</div>`;
+            if (!legendControl) {
+                legendControl = L.control({ position: 'bottomright' });
+                legendControl.onAdd = function () {
+                    const d = L.DomUtil.create('div', 'map-legend');
+                    d.id = 'mapLegendBox';
+                    L.DomEvent.disableClickPropagation(d);
+                    return d;
+                };
+                legendControl.addTo(map);
+            }
+            document.getElementById('mapLegendBox').innerHTML = html;
+        }
+
+        // Selector de fecha del header: cambia la capa mostrada en el mapa
+        function onDateChange(date) {
+            currentDate = date;
+            layerNames.forEach(layerName => {
+                if (geoJsonLayers[layerName]) map.removeLayer(geoJsonLayers[layerName].featureGroup);
+                const data = datedData[layerName] ? datedData[layerName][date] : null;
+                if (!data) {
+                    geoJsonLayers[layerName] = null;
+                    document.getElementById(layerStats[layerName]).innerHTML = 'Puntos: 0';
+                    return;
+                }
+                geoJsonLayers[layerName] = { data: data, featureGroup: L.featureGroup() };
+                document.getElementById(layerStats[layerName]).innerHTML =
+                    `Puntos: ${data.features.length}<br><span class="stats-date">Fecha: ${formatDate(date)}</span>`;
+            });
+            renderMarkers();   // reconstruye marcadores (variable activa) y actualiza dashboard
+        }
+        let currentDate = null;
+
+        // ── Tabla de puntos (con descarga CSV) ──
+        const TABLE_COLS = [
+            { label: 'Capa',             get: (p, layer) => layer },
+            { label: 'Nombre del punto', get: (p, layer) => p[layerConfig[layer].pointNameField] || '-' },
+            { label: 'Municipio',        get: (p) => _getField(p, ['Municipio', 'MUNICIPIO']) || '-' },
+            { label: 'Laguna/Río',       get: (p) => _getField(p, ['Laguna Rio']) || '-' },
+            { label: 'Alerta',           get: (p) => hasValue(p.Alerta) ? p.Alerta : '-' },
+            { label: 'Info',             cls: 'info-cell', get: (p) => _getField(p, ['info']) || '-' },
+            { label: 'Dinámica',         get: (p) => _getField(p, ['Dinamica']) || '-' },
+            { label: 'PACiano',          get: (p) => _getField(p, ['PACiano', 'PACIano']) || '-' }
+        ];
+        let _tableRows = [];
+
+        function collectTableData() {
+            const rows = [];
+            layerNames.forEach(layer => {
+                if (!document.getElementById(layerToggles[layer]).checked) return;
+                const entry = geoJsonLayers[layer];
+                if (!entry) return;
+                entry.data.features.forEach(f => {
+                    if (f.geometry && f.geometry.coordinates) rows.push(TABLE_COLS.map(c => c.get(f.properties, layer)));
+                });
+            });
+            return rows;
+        }
+
+        function openDataTable() {
+            _tableRows = collectTableData();
+            const head = '<tr>' + TABLE_COLS.map(c => `<th>${c.label}</th>`).join('') + '</tr>';
+            const body = _tableRows.map(r => '<tr>' + r.map((v, i) => `<td class="${TABLE_COLS[i].cls || ''}">${v}</td>`).join('') + '</tr>').join('');
+            document.getElementById('tableModalBody').innerHTML =
+                `<table class="data-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+            document.getElementById('tableModalTitle').textContent =
+                `Puntos (${_tableRows.length})${currentDate ? ' — ' + formatDate(currentDate) : ''}`;
+            document.getElementById('tableModal').classList.add('open');
+        }
+        function closeDataTable() { document.getElementById('tableModal').classList.remove('open'); }
+
+        function downloadTableCSV() {
+            if (!_tableRows.length) _tableRows = collectTableData();
+            const esc = (v) => { v = String(v == null ? '' : v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+            const header = TABLE_COLS.map(c => esc(c.label)).join(';');
+            const lines = [header].concat(_tableRows.map(r => r.map(esc).join(';')));
+            const csv = '﻿' + lines.join('\r\n');   // BOM para que Excel lea UTF-8 (acentos/emojis)
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CianoAlert_tabla_${currentDate || 'datos'}.csv`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Cerrar el modal al hacer clic fuera de la caja
+        document.getElementById('tableModal').addEventListener('click', function (e) {
+            if (e.target === this) closeDataTable();
+        });
+
         // Carga inicial: manifest.json -> todas las fechas historicas + capa mas reciente en el mapa
         fetch('manifest.json')
             .then(res => res.json())
@@ -1438,12 +1800,25 @@
                 return Promise.all(fetches);
             })
             .then(() => {
-                const maxDate = [latestDateByLayer.SRH, latestDateByLayer.ADA]
-                    .filter(Boolean).sort().pop();
-                document.getElementById('panelTitleText').textContent = maxDate
-                    ? `Alertas: ${formatDate(maxDate)}`
-                    : 'Alertas';
+                // Todas las fechas disponibles (union de ambas capas), mas recientes primero
+                const allDates = Array.from(new Set([
+                    ...(latestDateByLayer.SRH ? Object.keys(historicalData.SRH) : []),
+                    ...(latestDateByLayer.ADA ? Object.keys(historicalData.ADA) : [])
+                ])).sort().reverse();
 
+                const maxDate = allDates.length ? allDates[0] : null;
+                currentDate = maxDate;
+
+                // Subtitulo del header + selector de fecha
+                document.getElementById('hdrDate').textContent = maxDate
+                    ? `Último análisis: ${formatDate(maxDate)}`
+                    : 'Sin datos';
+                const sel = document.getElementById('dateSelect');
+                sel.innerHTML = allDates.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('');
+
+                document.getElementById('panelTitleText').textContent = 'Capas';
+
+                buildLegend();
                 updateDashboard();
                 updateTimeSeries();
 
