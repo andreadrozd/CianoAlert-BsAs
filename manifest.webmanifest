@@ -3,6 +3,7 @@
   "short_name": "CyanoSat",
   "description": "Monitoreo satelital de calidad trófica y alerta por cianobacterias",
   "lang": "es",
+  "id": "/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
