@@ -1,7 +1,7 @@
 /* Service Worker de CyanoSat — habilita instalación (PWA) y uso offline.
    Estrategia: cache-first con actualización en segundo plano.
    Subí la versión del CACHE cuando cambien archivos para forzar refresco. */
-const CACHE = 'cyanosat-v2';
+const CACHE = 'cyanosat-v3';
 const SHELL = [
   './',
   './index.html',

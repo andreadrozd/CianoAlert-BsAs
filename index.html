@@ -113,6 +113,46 @@
             font-size: 17px; line-height: 1; border: 1px solid rgba(255,255,255,0.45);
         }
         #appHeader #btnInfoExt:hover { background: rgba(255,255,255,0.32); }
+        #appHeader #btnHelp {
+            display: flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(255,255,255,0.18); color: #fff; cursor: pointer;
+            font-weight: 700; font-size: 17px; line-height: 1; padding: 0;
+            border: 1px solid rgba(255,255,255,0.45);
+        }
+        #appHeader #btnHelp:hover { background: rgba(255,255,255,0.32); }
+        /* ── Modal de ayuda / tutorial ── */
+        .help-modal {
+            display: none; position: fixed; inset: 0; z-index: 3000;
+            background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px;
+        }
+        .help-modal.open { display: flex; }
+        .help-modal-box {
+            background: #fff; border-radius: 10px; width: 100%; max-width: 640px; max-height: 88vh;
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+        }
+        .help-modal-head {
+            background: #0d3d56; color: #fff; padding: 12px 16px;
+            display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 16px;
+        }
+        .help-modal-body { overflow-y: auto; padding: 16px 18px; font-size: 14px; color: #2c3e50; line-height: 1.5; }
+        .help-modal-body h3 {
+            font-size: 15px; color: #0d3d56; margin: 16px 0 7px; padding-bottom: 4px;
+            border-bottom: 2px solid #e6edf2;
+        }
+        .help-modal-body h3:first-child { margin-top: 0; }
+        .help-modal-body p { margin: 6px 0; }
+        .help-modal-body ul { margin: 6px 0 6px 2px; padding: 0; list-style: none; }
+        .help-modal-body li { margin: 7px 0; display: flex; align-items: flex-start; gap: 9px; }
+        .help-ico { flex-shrink: 0; font-size: 18px; line-height: 1.3; width: 24px; text-align: center; }
+        .help-swatch { flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; margin-top: 3px; border: 1px solid rgba(0,0,0,0.2); }
+        .help-modal-body b { color: #14405c; }
+        .help-note { background: #eaf4fb; border-left: 3px solid #1a5276; padding: 8px 11px; border-radius: 5px; margin: 10px 0; font-size: 13px; }
+        @media (max-width: 768px) {
+            .help-modal { padding: 8px; }
+            .help-modal-box { max-height: 92vh; }
+            .help-modal-body { font-size: 14px; }
+        }
         @media (max-width: 768px) {
             :root { --headerH: 66px; }
             #appHeader { padding: 6px 12px; }
@@ -746,6 +786,7 @@
             </div>
         </div>
         <div class="hdr-right">
+            <button id="btnHelp" onclick="openHelp()" title="¿Cómo usar la app?" aria-label="Ayuda">?</button>
             <a id="btnInfoExt" href="https://cyanosat.envsat.com/wp-content/uploads/2026/05/Cianobacterias-Info-Rediseno.html"
                target="_blank" rel="noopener noreferrer"
                title="¿Qué son las cianobacterias?" aria-label="Información sobre cianobacterias">i</a>
@@ -862,6 +903,63 @@
                 </div>
             </div>
             <div class="table-modal-body" id="tableModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Modal de ayuda / tutorial -->
+    <div id="helpModal" class="help-modal">
+        <div class="help-modal-box">
+            <div class="help-modal-head">
+                <span>❓ ¿Cómo usar la app?</span>
+                <button class="tm-close" onclick="closeHelp()" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="help-modal-body">
+                <p>Esta app muestra el <b>monitoreo satelital</b> de la calidad del agua de la Provincia de Buenos Aires. Cada punto en el mapa es un sitio monitoreado.</p>
+
+                <h3>1. Elegí qué ver — las 4 alertas</h3>
+                <p>En el panel <b>"Alertas"</b> elegís qué variable colorea el mapa:</p>
+                <ul>
+                    <li><span class="help-ico">🦠</span><span><b>Cianobacterias</b> — nivel de alerta por cianobacterias (riesgo sanitario).</span></li>
+                    <li><span class="help-ico">🌿</span><span><b>Estado trófico</b> — nivel de nutrientes del agua (clorofila).</span></li>
+                    <li><span class="help-ico">🌫️</span><span><b>Turbidez</b> — cuán turbia está el agua.</span></li>
+                    <li><span class="help-ico">🍂</span><span><b>Materia orgánica disuelta</b> — materia orgánica en el agua.</span></li>
+                </ul>
+                <div class="help-note">🎯 <b>Precisión del alerta</b> (solo en cianobacterias; se ve en el detalle de cada punto con el botón Info): indica la <b>confiabilidad de la estimación</b>. Se calcula como la <b>congruencia de la información entre distintos sensores satelitales</b> en relación al <b>patrón espectral y temporal</b>. Va de ❓ no se estima → ● baja → ✅ alta → ✅✅ muy alta.</div>
+
+                <h3>2. Los colores (nivel de alerta)</h3>
+                <ul>
+                    <li><span class="help-swatch" style="background:#28a745;"></span><span><b>Verde</b> — bajo / nulo (oligotrófico · baja)</span></li>
+                    <li><span class="help-swatch" style="background:#ffe600;"></span><span><b>Amarillo</b> — medio (mesotrófico · media)</span></li>
+                    <li><span class="help-swatch" style="background:#ff9800;"></span><span><b>Naranja</b> — alto (eutrófico · alta)</span></li>
+                    <li><span class="help-swatch" style="background:#dc3545;"></span><span><b>Rojo</b> — muy alto (hipereutrófico · muy alta)</span></li>
+                    <li><span class="help-swatch" style="background:#9e9e9e;width:9px;height:9px;margin-top:6px;"></span><span><b>Punto gris chico</b> — sin datos ese día</span></li>
+                </ul>
+
+                <h3>3. Los símbolos en el mapa</h3>
+                <ul>
+                    <li><span class="help-ico" style="color:#28a745;">●</span><span>En <b>Cianobacterias</b>: círculo relleno, con flecha de tendencia — <b>⬆️</b> en aumento, <b>⬇️</b> en disminución, <b>●</b> estable.</span></li>
+                    <li><span class="help-ico">◍</span><span>En las otras variables: punto relleno con borde blanco (sin flechas).</span></li>
+                </ul>
+
+                <h3>4. Los botones del panel</h3>
+                <ul>
+                    <li><span class="help-ico">💬</span><span><b>Info</b> — actívalo y tocá un punto para ver su detalle (nombre, municipio, valores, precisión).</span></li>
+                    <li><span class="help-ico">📋</span><span><b>Tabla</b> — lista de todos los puntos; se puede <b>descargar en CSV</b>.</span></li>
+                    <li><span class="help-ico">📊</span><span><b>Distribución</b> — gráfico de torta con la proporción de alertas (se actualiza al hacer zoom en el mapa).</span></li>
+                    <li><span class="help-ico">📈</span><span><b>Evolución</b> — evolución de un punto en el tiempo. Primero tocá un punto, después abrí este gráfico.</span></li>
+                </ul>
+
+                <h3>5. Otras herramientas</h3>
+                <ul>
+                    <li><span class="help-ico">📅</span><span><b>Fecha</b> (arriba) — elegí la semana de análisis a mostrar.</span></li>
+                    <li><span class="help-ico">🔍</span><span><b>Buscador</b> — encontrá un punto por nombre/código, o un lugar.</span></li>
+                    <li><span class="help-ico">📍</span><span><b>Geolocalización</b> — te ubica en el mapa (botón sobre el mapa).</span></li>
+                    <li><span class="help-ico">☰</span><span><b>Capas SRH / ADA</b> — activá/desactivá cada red de monitoreo con los tildes.</span></li>
+                    <li><span class="help-ico" style="font-style:italic;font-family:Georgia,serif;">i</span><span><b>Info cianobacterias</b> — abre una página con información sobre las cianobacterias.</span></li>
+                </ul>
+
+                <div class="help-note">💡 Tip: acercá el mapa (zoom) a tu zona de interés; el gráfico de <b>Distribución</b> se recalcula según lo que estés viendo.</div>
+            </div>
         </div>
     </div>
 
@@ -1855,6 +1953,13 @@
             document.getElementById('tableModal').classList.add('open');
         }
         function closeDataTable() { document.getElementById('tableModal').classList.remove('open'); }
+
+        // ── Ayuda / tutorial ──
+        function openHelp() { document.getElementById('helpModal').classList.add('open'); }
+        function closeHelp() { document.getElementById('helpModal').classList.remove('open'); }
+        document.getElementById('helpModal').addEventListener('click', function (e) {
+            if (e.target === this) closeHelp();
+        });
 
         function downloadTableCSV() {
             if (!_tableRows.length) _tableRows = collectTableData();
