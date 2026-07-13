@@ -104,6 +104,15 @@
             border-radius: 5px; padding: 4px 8px; font-size: 13px; cursor: pointer;
         }
         #appHeader .hdr-date-select select option { color: #1a1a1a; }
+        #appHeader .hdr-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        #appHeader #btnInfoExt {
+            display: flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(255,255,255,0.18); color: #fff; text-decoration: none;
+            font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700;
+            font-size: 17px; line-height: 1; border: 1px solid rgba(255,255,255,0.45);
+        }
+        #appHeader #btnInfoExt:hover { background: rgba(255,255,255,0.32); }
         @media (max-width: 768px) {
             :root { --headerH: 66px; }
             #appHeader { padding: 6px 12px; }
@@ -736,9 +745,14 @@
                 <div class="hdr-sub" id="hdrDate">Cargando…</div>
             </div>
         </div>
-        <div class="hdr-date-select">
-            <label for="dateSelect">Fecha:</label>
-            <select id="dateSelect" onchange="onDateChange(this.value)"></select>
+        <div class="hdr-right">
+            <a id="btnInfoExt" href="https://cyanosat.envsat.com/wp-content/uploads/2026/05/Cianobacterias-Info-Rediseno.html"
+               target="_blank" rel="noopener noreferrer"
+               title="¿Qué son las cianobacterias?" aria-label="Información sobre cianobacterias">i</a>
+            <div class="hdr-date-select">
+                <label for="dateSelect">Fecha:</label>
+                <select id="dateSelect" onchange="onDateChange(this.value)"></select>
+            </div>
         </div>
     </header>
     <div class="container">
