@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.kodular.contacto.CyanoSat",
+      "sha256_cert_fingerprints": [
+        "44:20:27:78:D8:D8:E1:6A:4A:23:B7:61:63:ED:F5:1A:FB:4B:6E:A6:E9:C9:A7:6D:66:EA:B3:96:1D:C9:74:75",
+        "EF:4C:AB:8F:2C:54:52:7E:A5:2E:15:C7:F9:47:32:80:35:A9:EF:40:01:E0:2E:01:CB:7E:31:50:E9:4A:0F:CE"
+      ]
+    }
+  }
+]
