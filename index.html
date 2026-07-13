@@ -3,8 +3,17 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor de Alertas - SRH y ADA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CyanoSat — Monitoreo Satelital</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#0d3d56">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CyanoSat">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <link rel="icon" type="image/png" href="assets/icon-192.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
@@ -15,6 +24,52 @@
             box-sizing: border-box;
         }
         :root { --headerH: 58px; --panelW: 340px; }
+        /* ── Splash de bienvenida ── */
+        #splash {
+            position: fixed; inset: 0; z-index: 5000;
+            background-color: #061826;
+            background-image:
+                linear-gradient(to bottom,
+                    rgba(3,18,32,0.90) 0%,
+                    rgba(3,18,32,0.72) 16%,
+                    rgba(3,18,32,0.34) 34%,
+                    rgba(3,18,32,0.34) 60%,
+                    rgba(3,18,32,0.95) 100%),
+                url('assets/splash.jpg');
+            background-repeat: no-repeat, no-repeat;
+            background-position: center, center;
+            background-size: 100% 100%, cover;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 5vh 24px 24px; opacity: 1; transition: opacity 0.5s ease;
+        }
+        /* El splash de bienvenida se muestra solo en celular, no en desktop */
+        @media (min-width: 769px) {
+            #splash { display: none !important; }
+        }
+        #splash.hide { opacity: 0; pointer-events: none; }
+        #splash .splash-main { text-align: center; animation: splashIn 0.6s ease; }
+        #splash .splash-logo {
+            width: min(68vw, 320px); max-height: 26vh; object-fit: contain;
+            filter: drop-shadow(0 2px 12px rgba(0,0,0,0.6));
+        }
+        #splash .splash-tag { color: #f0f6fb; font-size: 14px; margin-top: 14px; line-height: 1.45; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
+        #splash .splash-orgs { position: absolute; bottom: 28px; left: 0; right: 0; text-align: center; }
+        #splash .splash-orgs-label {
+            color: rgba(255,255,255,0.7); font-size: 11px; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        #splash .splash-orgs-logos {
+            display: inline-flex; align-items: center; gap: 16px;
+            background: #fff; padding: 9px 18px; border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+        }
+        #splash .splash-orgs-logos img { height: 40px; width: auto; object-fit: contain; }
+        @keyframes splashIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+        @media (max-width: 768px) {
+            #splash .splash-tag { font-size: 12.5px; }
+            #splash .splash-orgs-logos img { height: 33px; }
+            #splash .splash-orgs-logos { gap: 12px; padding: 8px 14px; }
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
@@ -28,6 +83,12 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 6px 16px; gap: 12px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        #appHeader .hdr-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        #appHeader #hdrLogo {
+            width: 42px; height: 42px; flex-shrink: 0;
+            background: #fff; border-radius: 50%; padding: 3px;
+            object-fit: contain; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
         #appHeader .hdr-titles { min-width: 0; }
         #appHeader .hdr-title {
@@ -49,6 +110,7 @@
             #appHeader .hdr-title { white-space: normal; font-size: 13.5px; }
             #appHeader .hdr-sub { font-size: 11px; }
             #appHeader .hdr-date-select label { display: none; }
+            #appHeader #hdrLogo { width: 36px; height: 36px; }
         }
         .container {
             display: grid;
@@ -652,10 +714,27 @@
     </style>
 </head>
 <body>
+    <!-- Splash de bienvenida -->
+    <div id="splash">
+        <div class="splash-main">
+            <img src="assets/cyanosat-logo.png" alt="CyanoSat" class="splash-logo">
+            <div class="splash-tag">Monitoreo Satelital de Calidad Trófica y Alerta<br>por Cianobacterias para la Provincia de Buenos Aires</div>
+        </div>
+        <div class="splash-orgs">
+            <div class="splash-orgs-logos">
+                <img src="assets/ada.png" alt="Autoridad del Agua">
+                <img src="assets/undav.jpg" alt="Universidad Nacional de Avellaneda">
+            </div>
+        </div>
+    </div>
+
     <header id="appHeader">
-        <div class="hdr-titles">
-            <div class="hdr-title">Monitoreo Satelital de Calidad Trófica y Alerta por Cianobacterias</div>
-            <div class="hdr-sub" id="hdrDate">Cargando…</div>
+        <div class="hdr-left">
+            <img id="hdrLogo" src="assets/Cyanosat-icon.png" alt="CyanoSat">
+            <div class="hdr-titles">
+                <div class="hdr-title">Monitoreo Satelital de Calidad Trófica y Alerta por Cianobacterias</div>
+                <div class="hdr-sub" id="hdrDate">Cargando…</div>
+            </div>
         </div>
         <div class="hdr-date-select">
             <label for="dateSelect">Fecha:</label>
@@ -1833,6 +1912,27 @@
                 map.invalidateSize();
             }, 100);
         });
+    </script>
+
+    <!-- Splash + PWA (service worker) -->
+    <script>
+        // Ocultar el splash de bienvenida (~1.8 s tras cargar)
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                var s = document.getElementById('splash');
+                if (!s) return;
+                s.classList.add('hide');
+                setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 600);
+            }, 1800);
+        });
+
+        // Registrar el service worker (habilita instalación y uso offline)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('service-worker.js')
+                    .catch(function (e) { console.warn('SW no registrado:', e); });
+            });
+        }
     </script>
 </body>
 </html>
