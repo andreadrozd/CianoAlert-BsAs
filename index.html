@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build 2026-07-28 -->
+<!-- build 2026-08-20 -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -1293,62 +1293,66 @@
         let activeVariable = 'cyano';
         function getVarLevel(props) { return VARIABLE_DEFS[activeVariable].level(props); }
 
-        // Colores más oscuros para los "badge" de categoría en los popups (legibles con texto blanco)
-        const BADGE_COLORS = { 0: '#777', 1: '#1e7e34', 2: '#c69a10', 3: '#d35400', 4: '#c0392b' };
+        // Badges de categoría en los popups: MISMOS colores que la leyenda (VAR_COLORS).
+        // Texto oscuro sobre los tonos claros (gris/amarillo/naranja) para que se lea.
+        function badgeTextColor(level) { return (level === 1 || level === 4) ? '#fff' : '#1a1a1a'; }
         function catBadge(text, level) {
-            const bg = BADGE_COLORS[level] || '#777';
-            return `<span style="display:inline-block;background:${bg};color:#fff;font-weight:700;padding:1px 8px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${text}</span>`;
+            const bg = VAR_COLORS[level] || VAR_COLORS[0];
+            return `<span style="display:inline-block;background:${bg};color:${badgeTextColor(level)};font-weight:700;padding:1px 8px;border-radius:4px;border:1px solid rgba(0,0,0,0.2);">${text}</span>`;
         }
         function fmtNum(v) { const n = parseFloat(v); return isNaN(n) ? null : n; }
 
         // Línea "Info" con prefijo coloreado (igual que antes), para cianobacterias
-        function infoLine(props) {
+        function infoLine(props, label) {
+            label = label || 'Info';
             let value = hasValue(props.info) ? props.info : '-';
             if (value !== '-') {
-                const alertStyles = {
-                    'alerta verde': '#1e7e34', 'alerta amarillo': '#d4a017',
-                    'alerta naranja': '#d35400', 'alerta roja': '#c0392b'
+                const alertLevels = {
+                    'alerta verde': 1, 'alerta amarillo': 2,
+                    'alerta naranja': 3, 'alerta roja': 4
                 };
                 const commaIdx = value.indexOf(',');
                 const prefix = commaIdx !== -1 ? value.substring(0, commaIdx) : value;
                 const rest = commaIdx !== -1 ? value.substring(commaIdx) : '';
                 const prefixLower = prefix.toLowerCase().trim();
                 let matched = null;
-                for (const k of Object.keys(alertStyles)) { if (prefixLower.includes(k)) { matched = k; break; } }
+                for (const k of Object.keys(alertLevels)) { if (prefixLower.includes(k)) { matched = k; break; } }
                 if (matched) {
-                    value = `<span style="display:inline-block;background:${alertStyles[matched]};color:#fff;font-weight:700;padding:1px 7px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);">${prefix}</span>${rest}`;
+                    const lv = alertLevels[matched];
+                    value = `<span style="display:inline-block;background:${VAR_COLORS[lv]};color:${badgeTextColor(lv)};font-weight:700;padding:1px 7px;border-radius:4px;border:1px solid rgba(0,0,0,0.2);">${prefix}</span>${rest}`;
                 }
             }
-            return `<div style="padding: 2px 4px;"><strong>Info:</strong> ${value}</div>`;
+            return `<div style="padding: 2px 4px;"><strong>${label}:</strong> ${value}</div>`;
         }
 
-        // Bloque del popup específico de cada variable
-        function buildVarBlock(props) {
-            const lvl = getVarLevel(props);
+        // Bloque del popup: los 4 bloques (labels originales de la app) UNIFICADOS
+        // en un solo popup, cada uno con el nivel de su propia variable.
+        function buildAllAlertsBlock(props) {
             const row = (label, val) => `<div style="padding: 2px 4px;"><strong>${label}:</strong> ${val}</div>`;
-            if (activeVariable === 'cyano') {
-                const pac = _getField(props, ['PACiano', 'PACIano']) || '-';
-                return infoLine(props) + row('Precisión del alerta', pac);
-            }
-            if (activeVariable === 'trophic') {
-                const cat = _getField(props, ['E. Trofico']) || 'sin datos';
-                const cloro = fmtNum(props.Cloro);
-                return row('Estado Trófico', catBadge(cat, lvl)) +
-                       row('Concentración de clorofila', cloro != null ? Math.round(cloro) + ' µg/l' : '-');
-            }
-            if (activeVariable === 'turb') {
-                const cat = _getField(props, ['A. TURB', 'A.TURB', 'A Turb']) || 'sin datos';
-                const t = fmtNum(props.Turb);
-                return row('Turbidez', catBadge(cat, lvl)) +
-                       row('Valor de turbidez', t != null ? Math.round(t) + ' NTU' : '-');
-            }
-            if (activeVariable === 'mon') {
-                const cat = _getField(props, ['A. MON', 'A.MON', 'A MON']) || 'sin datos';
-                const m = fmtNum(props.MON);
-                return row('Materia orgánica disuelta', catBadge(cat, lvl)) +
-                       row('Índice de MOD', m != null ? String(m) : '-');
-            }
-            return '';
+            const sep = '<div style="border-top:1px solid #eee; margin:4px 0 2px;"></div>';
+            const pac     = _getField(props, ['PACiano', 'PACIano']) || '-';
+            const troCat  = _getField(props, ['E. Trofico']) || 'sin datos';
+            const cloro   = fmtNum(props.Cloro);
+            const turbCat = _getField(props, ['A. TURB', 'A.TURB', 'A Turb']) || 'sin datos';
+            const t       = fmtNum(props.Turb);
+            const monCat  = _getField(props, ['A. MON', 'A.MON', 'A MON']) || 'sin datos';
+            const m       = fmtNum(props.MON);
+            return '<div style="border-top:1px solid #e0e0e0; margin:5px 0 3px;"></div>' +
+                   // Cianobacterias
+                   infoLine(props, 'Cianobacterias') +
+                   row('Precisión del alerta', pac) +
+                   sep +
+                   // Estado trófico
+                   row('Estado Trófico', catBadge(troCat, levelTrophic(props))) +
+                   row('Concentración de clorofila', cloro != null ? Math.round(cloro) + ' µg/l' : '-') +
+                   sep +
+                   // Turbidez
+                   row('Turbidez', catBadge(turbCat, levelCategory(turbCat))) +
+                   row('Valor de turbidez', t != null ? Math.round(t) + ' NTU' : '-') +
+                   sep +
+                   // Materia orgánica disuelta
+                   row('Materia orgánica disuelta', catBadge(monCat, levelCategory(monCat))) +
+                   row('Índice de MOD', m != null ? String(m) : '-');
         }
 
         let geoJsonLayers = {};           // capa visible en el mapa (fecha mas reciente por capa)
@@ -1473,8 +1477,8 @@
                 popupContent += `<div style="padding: 2px 4px;"><strong>${label}:</strong> ${value}</div>`;
             });
 
-            // Bloque específico de la variable activa
-            popupContent += buildVarBlock(props);
+            // Todas las alertas juntas (no solo la variable activa)
+            popupContent += buildAllAlertsBlock(props);
 
             // Notas chicas: S2 Fecha / S3 Fecha, solo si tienen datos
             const notes = notesFields
