@@ -1,0 +1,53 @@
+# Regenera manifest.json automáticamente cada vez que se suben GeoJSON a data/.
+# Los colaboradores solo suben archivos con el formato:
+#   data/CianoAlert_ADA_AAAAMMDD.geojson   o   data/CianoAlert_SRH_AAAAMMDD.geojson
+name: Actualizar manifest de fechas
+
+on:
+  push:
+    paths:
+      - 'data/**.geojson'
+  workflow_dispatch:        # también se puede correr a mano desde la pestaña Actions
+
+permissions:
+  contents: write           # necesario para guardar el manifest.json actualizado
+
+concurrency:
+  group: actualizar-manifest
+  cancel-in-progress: false # si suben varios archivos seguidos, se procesan en orden
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar manifest.json a partir de los archivos de data/
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          pat = re.compile(r'^CianoAlert_(ADA|SRH)_(\d{8})\.geojson$')
+          fechas = {'srh': set(), 'ada': set()}
+          for f in os.listdir('data'):
+              m = pat.match(f)
+              if m:
+                  fechas[m.group(1).lower()].add(m.group(2))
+          manifest = {'srh': sorted(fechas['srh']), 'ada': sorted(fechas['ada'])}
+          with open('manifest.json', 'w', encoding='utf-8') as fh:
+              json.dump(manifest, fh, indent=4)
+              fh.write('\n')
+          print('SRH:', len(manifest['srh']), 'fechas · ADA:', len(manifest['ada']), 'fechas')
+          PY
+
+      - name: Guardar el manifest si cambió
+        run: |
+          if git diff --quiet -- manifest.json; then
+            echo "manifest.json sin cambios"
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add manifest.json
+            git commit -m "Actualizar manifest.json (fechas nuevas en data/)"
+            git pull --rebase
+            git push
+          fi
