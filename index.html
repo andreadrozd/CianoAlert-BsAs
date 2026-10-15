@@ -235,7 +235,8 @@ section.blk{display:flex;flex-direction:column;gap:10px}
 .man-note.warn{background:var(--red-bg);color:var(--red-ink)}
 .man-note p{margin-bottom:6px}
 .man-table{font-size:13px;margin:6px 0 10px}
-.man-table td,.man-table th{font-family:var(--sans);text-align:left;vertical-align:top;white-space:normal}
+.mtable.man-table td,.mtable.man-table th{font-family:var(--sans);text-align:left;vertical-align:top;white-space:normal}
+.mtable.man-table td .mut{font-family:var(--mono);font-size:12px}
 .man-table th .dot{display:inline-block;width:9px;height:9px;margin-right:4px}
 .faq{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;max-width:80ch;background:#fff}
 .faq summary{cursor:pointer;font-weight:600}
@@ -246,7 +247,7 @@ section.blk{display:flex;flex-direction:column;gap:10px}
 #rateBanner.open{display:flex}
 #rateBanner .acts{display:flex;flex-wrap:wrap;gap:8px}
 
-/* Plantas acuáticas */
+/* Macrófitas */
 .plant{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:#E3F1EF;color:#0D5148;font-size:13px;font-weight:600}
 .plantnote{padding:10px 12px;border-radius:8px;background:#E3F1EF;color:#0D5148;font-size:13px;line-height:1.45;margin-top:8px}
 
@@ -607,12 +608,12 @@ body.muni-on #right,body.muni-on #left{display:none}
         <h3 class="rep-h" style="margin:0">Detalle por municipio</h3>
         <div class="mctl no-print">
           <label>Ordenar por <select onchange="muniSort=this.value;renderMuni()">
-            <option value="cyano">Cianobacterias</option><option value="trophic">Estado trófico</option><option value="turb">Turbidez</option><option value="mon">Materia orgánica disuelta</option><option value="plants">Plantas acuáticas</option><option value="name">Nombre</option></select></label>
+            <option value="cyano">Cianobacterias</option><option value="trophic">Estado trófico</option><option value="turb">Turbidez</option><option value="mon">Materia orgánica disuelta</option><option value="plants">Macrófitas</option><option value="name">Nombre</option></select></label>
           <label class="mfilter"><span class="sr-only">Filtrar municipio o cuerpo de agua</span><input type="search" placeholder="Filtrar municipio o laguna" oninput="muniFilter=this.value;renderMuni()"></label>
         </div>
       </div>
       <div class="mlist">
-        <div class="mlhead" aria-hidden="true"><span>Municipio</span><span>Cianobacterias</span><span>Estado trófico</span><span>Turbidez</span><span>MOD</span><span>Plantas</span><span></span></div>
+        <div class="mlhead" aria-hidden="true"><span>Municipio</span><span>Cianobacterias</span><span>Estado trófico</span><span>Turbidez</span><span>MOD</span><span>Macrófitas</span><span></span></div>
         <div id="muniList"></div>
       </div>
     </section>
@@ -736,11 +737,12 @@ body.muni-on #right,body.muni-on #left{display:none}
           <div class="mtable-wrap"><table class="mtable man-table">
             <thead><tr><th scope="col">Variable</th><th scope="col">Qué indica</th><th scope="col"><span class="dot" style="background:var(--l1)"></span> Nivel 1</th><th scope="col"><span class="dot" style="background:var(--l2)"></span> Nivel 2</th><th scope="col"><span class="dot" style="background:var(--l3)"></span> Nivel 3</th><th scope="col"><span class="dot" style="background:var(--l4)"></span> Nivel 4</th></tr></thead>
             <tbody>
-              <tr><td><b>Cianobacterias</b></td><td>Alerta por floraciones de cianobacterias (riesgo sanitario).</td><td>Verde: riesgo nulo a bajo</td><td>Amarilla: riesgo medio</td><td>Naranja: riesgo moderado a alto</td><td>Roja: riesgo alto</td></tr>
+              <tr><td><b>Cianobacterias</b></td><td>Alerta por floraciones de cianobacterias (riesgo sanitario), según el <b>biovolumen</b> estimado de cianobacterias.</td><td>Verde: riesgo nulo a bajo<br><span class="mut">hasta 4 mm³/l</span></td><td>Amarilla: riesgo medio<br><span class="mut">4 a 8 mm³/l</span></td><td>Naranja: riesgo moderado a alto<br><span class="mut">8 a 16 mm³/l</span></td><td>Roja: riesgo alto<br><span class="mut">más de 16 mm³/l</span></td></tr>
               <tr><td><b>Estado trófico</b></td><td>Enriquecimiento en nutrientes, estimado a partir de la clorofila-a.</td><td>Oligotrófico</td><td>Mesotrófico</td><td>Eutrófico</td><td>Hipereutrófico</td></tr>
               <tr><td><b>Turbidez</b></td><td>Partículas en suspensión que enturbian el agua.</td><td>Baja</td><td>Media</td><td>Alta</td><td>Muy alta</td></tr>
               <tr><td><b>Materia orgánica disuelta (MOD)</b></td><td>Compuestos orgánicos disueltos que colorean el agua.</td><td>Baja</td><td>Media</td><td>Alta</td><td>Muy alta</td></tr>
             </tbody></table></div>
+          <p><b>Umbrales de cianobacterias:</b> los niveles de alerta corresponden al biovolumen de cianobacterias en el agua, expresado en milímetros cúbicos por litro (mm³/l): nivel 1 hasta 4 mm³/l; nivel 2 de 4 a 8 mm³/l; nivel 3 de 8 a 16 mm³/l; nivel 4 más de 16 mm³/l.</p>
           <p>Un punto sin estimación esa fecha se muestra como <b>sin datos</b> (ver <a href="#man-faq">Preguntas frecuentes</a>).</p>
         </section>
 
@@ -751,7 +753,7 @@ body.muni-on #right,body.muni-on #left{display:none}
             <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 L18.5 17 H1.5 Z" fill="#E8731A" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg><span><b>Triángulo hacia arriba</b> (solo cianobacterias): el nivel está <b>en aumento</b>.</span></li>
             <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 18 L18.5 3 H1.5 Z" fill="#E8731A" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg><span><b>Triángulo hacia abajo</b> (solo cianobacterias): el nivel está <b>en disminución</b>.</span></li>
             <li><svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="3.5" fill="#fff" stroke="#8C979F" stroke-width="2"/></svg><span><b>Círculo gris hueco:</b> sin datos esa fecha.</span></li>
-            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D7A6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V12M12 12c0-4.2 3-7.5 7.5-7.5 0 4.2-3 7.5-7.5 7.5zM12 15c0-3.3-2.6-6-6.2-6 0 3.4 2.6 6 6.2 6z"/></svg><span><b>Brote verde</b> junto al punto: se detectaron <b>plantas acuáticas</b>. Aparece con cualquier variable.</span></li>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D7A6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V12M12 12c0-4.2 3-7.5 7.5-7.5 0 4.2-3 7.5-7.5 7.5zM12 15c0-3.3-2.6-6-6.2-6 0 3.4 2.6 6 6.2 6z"/></svg><span><b>Brote verde</b> junto al punto: se detectaron <b>macrófitas</b>. Aparece con cualquier variable.</span></li>
             <li><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="#0B2E40" stroke-width="2.5"/><circle cx="11" cy="11" r="4" fill="#2E9A57"/></svg><span><b>Anillo oscuro:</b> el punto que tenés seleccionado.</span></li>
           </ul>
           <p>La leyenda del mapa (abajo a la izquierda) siempre muestra los niveles de la variable elegida.</p>
@@ -763,7 +765,7 @@ body.muni-on #right,body.muni-on #left{display:none}
           <ul>
             <li>La <b>barra de colores</b> muestra la proporción de cada nivel; el gris corresponde a puntos sin datos.</li>
             <li>El <b>recuadro rojo</b> compara el nivel más alto con la fecha anterior (por ejemplo, «+17 respecto del 15/07»).</li>
-            <li>El <b>recuadro verde</b> indica cuántos puntos tienen plantas acuáticas detectadas.</li>
+            <li>El <b>recuadro verde</b> indica cuántos puntos tienen macrófitas detectadas.</li>
           </ul>
           <p>En <b>Redes de monitoreo</b> podés mostrar u ocultar los puntos de ADA y de SRH. La elección también se aplica a la tabla, a las descargas y al resumen por municipio.</p>
         </section>
@@ -774,7 +776,7 @@ body.muni-on #right,body.muni-on #left{display:none}
           <ol>
             <li><b>Identificación:</b> red, código, nombre, municipio y tipo de cuerpo de agua.</li>
             <li><b>Estado de cianobacterias</b> en la fecha elegida, con su descripción y la <b>precisión del alerta</b>.</li>
-            <li>Aviso de <b>plantas acuáticas</b>, si corresponde.</li>
+            <li>Aviso de <b>macrófitas</b>, si corresponde.</li>
             <li><b>Línea temporal</b> de cianobacterias de las últimas 7 fechas. Tocá un casillero para ir a esa fecha; los rayados son fechas sin datos.</li>
             <li>Las demás variables: <b>estado trófico</b> (con su valor de clorofila-a en µg/l), <b>turbidez</b> (en NTU) y <b>materia orgánica disuelta</b> (índice).</li>
           </ol>
@@ -786,8 +788,8 @@ body.muni-on #right,body.muni-on #left{display:none}
           <h2>9. Resumen ampliado del punto</h2>
           <p>Con el botón <b>Ampliar resumen del punto</b> se abre un informe que ocupa toda el área del mapa. Contiene:</p>
           <ul>
-            <li><b>Síntesis del período:</b> para cianobacterias, el nivel promedio (de 1 a 4), cuántas fechas estuvo en naranja o roja y el máximo; para clorofila-a, turbidez y MOD, el valor promedio, el rango y la categoría más frecuente; y en qué fechas se detectaron plantas acuáticas.</li>
-            <li><b>Estados por variable y fecha:</b> una grilla de colores con las cuatro variables en todas las fechas, más una fila de plantas acuáticas.</li>
+            <li><b>Síntesis del período:</b> para cianobacterias, el nivel promedio (de 1 a 4), cuántas fechas estuvo en naranja o roja y el máximo; para clorofila-a, turbidez y MOD, el valor promedio, el rango y la categoría más frecuente; y en qué fechas se detectaron macrófitas.</li>
+            <li><b>Estados por variable y fecha:</b> una grilla de colores con las cuatro variables en todas las fechas, más una fila de macrófitas.</li>
             <li><b>Detalle por fecha:</b> tabla con todas las variables, valores, dinámica, precisión y fechas de las imágenes, con una fila final de promedios.</li>
           </ul>
           <p>Desde ahí podés descargar el <b>Informe PDF</b> o los <b>Datos CSV</b> del punto. <b>Volver al mapa</b> (o la tecla Esc) cierra el informe.</p>
@@ -801,17 +803,17 @@ body.muni-on #right,body.muni-on #left{display:none}
           <p>Cada <b>cuerpo de agua</b> (una laguna o un río, que puede tener varios puntos de muestreo) se cuenta <b>una sola vez por mes</b>, con el <b>nivel más alto</b> que registró en cada variable en las fechas de ese mes. Es decir, se informa la peor situación observada.</p>
           <h3>Qué contiene</h3>
           <ol>
-            <li><b>Panorama provincial del mes:</b> una tarjeta por variable con cuántos cuerpos de agua hay en cada nivel, más una tarjeta de plantas acuáticas.</li>
+            <li><b>Panorama provincial del mes:</b> una tarjeta por variable con cuántos cuerpos de agua hay en cada nivel, más una tarjeta de macrófitas.</li>
             <li><b>Tendencia entre meses:</b> para cada variable, el porcentaje de cuerpos de agua en los dos niveles más altos, mes a mes. El mes elegido aparece recuadrado.</li>
             <li><b>Detalle por municipio:</b> una fila por municipio con una mini-barra por variable. El número junto a cada barra indica cuántos cuerpos de agua están en los dos niveles más altos sobre el total (por ejemplo, 4/5).</li>
           </ol>
-          <p>Podés <b>ordenar</b> los municipios por cualquier variable o por plantas acuáticas, y <b>filtrar</b> escribiendo el nombre de un municipio o de una laguna. Al <b>tocar un municipio</b> se despliegan sus cuerpos de agua con el estado de cada variable; <b>Ver en mapa</b> te lleva a ese lugar.</p>
+          <p>Podés <b>ordenar</b> los municipios por cualquier variable o por macrófitas, y <b>filtrar</b> escribiendo el nombre de un municipio o de una laguna. Al <b>tocar un municipio</b> se despliegan sus cuerpos de agua con el estado de cada variable; <b>Ver en mapa</b> te lleva a ese lugar.</p>
           <p>También podés descargar el <b>Informe PDF</b> del panorama y los <b>Datos CSV</b> (una fila por cuerpo de agua).</p>
         </section>
 
         <section id="man-tabla">
           <h2>11. Tabla de puntos</h2>
-          <p>El botón <b>Tabla</b> abre la lista de todos los puntos de la fecha elegida con la información de cianobacterias: red, código, punto, cuerpo de agua, municipio, nivel y color de alerta, descripción, dinámica, precisión, plantas acuáticas y fechas de las imágenes. Está ordenada de mayor a menor alerta. Con <b>Descargar CSV</b> (o el botón <b>CSV</b> del panel) la bajás para abrirla en Excel u otra planilla.</p>
+          <p>El botón <b>Tabla</b> abre la lista de todos los puntos de la fecha elegida con la información de cianobacterias: red, código, punto, cuerpo de agua, municipio, nivel y color de alerta, descripción, dinámica, precisión, macrófitas y fechas de las imágenes. Está ordenada de mayor a menor alerta. Con <b>Descargar CSV</b> (o el botón <b>CSV</b> del panel) la bajás para abrirla en Excel u otra planilla.</p>
         </section>
 
         <section id="man-buscar">
@@ -877,13 +879,14 @@ body.muni-on #right,body.muni-on #left{display:none}
           <h2>18. Glosario</h2>
           <dl class="man-dl">
             <dt>Cianobacterias</dt><dd>Microorganismos fotosintéticos presentes en el agua que, en condiciones favorables, se multiplican y forman <b>floraciones</b>. Algunas producen toxinas que afectan la salud de personas y animales.</dd>
+            <dt>Biovolumen (mm³/l)</dt><dd>Volumen total ocupado por las células de cianobacterias en un litro de agua. Es la medida que define los niveles de alerta: cuanto mayor el biovolumen, mayor el riesgo.</dd>
             <dt>Floración</dt><dd>Crecimiento masivo de cianobacterias o algas, que puede teñir el agua de verde, formar natas o espumas y producir olores.</dd>
             <dt>Estado trófico</dt><dd>Grado de enriquecimiento en nutrientes del agua: oligotrófico (pocos nutrientes), mesotrófico, eutrófico e hipereutrófico (muy enriquecido).</dd>
             <dt>Eutrofización</dt><dd>Proceso de enriquecimiento en nutrientes que favorece el crecimiento excesivo de algas y cianobacterias.</dd>
             <dt>Clorofila-a</dt><dd>Pigmento de las algas y cianobacterias; su concentración (µg/l, microgramos por litro) indica cuánta biomasa fotosintética hay en el agua.</dd>
             <dt>Turbidez (NTU)</dt><dd>Medida de cuán turbia está el agua por partículas en suspensión, en unidades nefelométricas de turbidez.</dd>
             <dt>Materia orgánica disuelta (MOD)</dt><dd>Compuestos orgánicos disueltos, en general de origen vegetal o del suelo, que dan al agua tonos amarillentos o pardos.</dd>
-            <dt>Plantas acuáticas</dt><dd>Vegetación que crece en el agua (flotante, sumergida o emergente); su presencia se informa por separado porque modifica la señal que capta el satélite.</dd>
+            <dt>Macrófitas</dt><dd>Plantas acuáticas que crecen en el agua (flotantes, sumergidas o emergentes); su presencia se informa por separado porque modifica la señal que capta el satélite.</dd>
             <dt>Dinámica</dt><dd>Tendencia del nivel de cianobacterias respecto de la fecha anterior: en aumento, estable o en disminución.</dd>
             <dt>Sentinel-2 y Sentinel-3</dt><dd>Satélites del programa europeo Copernicus. Sentinel-2 (sensor MSI) ofrece mayor detalle espacial; Sentinel-3 (sensor OLCI) pasa con mayor frecuencia y está diseñado para el color del agua.</dd>
             <dt>ADA y SRH</dt><dd>Las dos redes de puntos de monitoreo: Autoridad del Agua y Recursos Hídricos de la Provincia de Buenos Aires.</dd>
@@ -1052,7 +1055,7 @@ const legend = L.control({ position: 'bottomleft' });
 legend.onAdd = function () { const d = L.DomUtil.create('div', 'map-legend'); d.id = 'legend'; L.DomEvent.disableClickPropagation(d); return d; };
 legend.addTo(map);
 
-// Símbolo de plantas acuáticas (brote)
+// Símbolo de macrófitas (brote)
 const PLANT_PATH = 'M12 21V12M12 12c0-4.2 3-7.5 7.5-7.5 0 4.2-3 7.5-7.5 7.5zM12 15c0-3.3-2.6-6-6.2-6 0 3.4 2.6 6 6.2 6z';
 const PLANT_SVG = sz => `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="#0D7A6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="${PLANT_PATH}"/></svg>`;
 // Insignia en el marcador: brote verde sobre círculo blanco, arriba a la derecha
@@ -1153,12 +1156,12 @@ function renderSummary() {
     const sign = d > 0 ? '+' + d : (d < 0 ? '−' + Math.abs(d) : 'sin cambios');
     note.innerHTML = `<div class="alertnote${c[4] ? '' : ' calm'}">Nivel máximo (${def.names[3].toLowerCase()}) en <b>${c[4]} puntos</b>: ${sign} respecto del ${fmtDS(DATES[i - 1])}.</div>`;
   } else note.innerHTML = '';
-  // Plantas acuáticas en la vista
+  // Macrófitas en la vista
   const b = map.getBounds(); let np = 0;
   visibleLayers().forEach(l => (DATA[l][curDate] ? DATA[l][curDate].features : []).forEach(f => {
     if (f.geometry && f.geometry.coordinates && plantsOf(f.properties) && b.contains([f.geometry.coordinates[1], f.geometry.coordinates[0]])) np++;
   }));
-  if (np) note.innerHTML += `<div class="plantnote">${PLANT_SVG(16)} Plantas acuáticas detectadas en <b>${np} punto${np > 1 ? 's' : ''}</b>.</div>`;
+  if (np) note.innerHTML += `<div class="plantnote">${PLANT_SVG(16)} Macrófitas detectadas en <b>${np} punto${np > 1 ? 's' : ''}</b>.</div>`;
 }
 
 function renderHistory() {
@@ -1243,7 +1246,7 @@ function renderDetail() {
         <span style="font-size:12.5px">Precisión</span>
         <div class="meter" style="flex:1" role="img" aria-label="Precisión ${pl}, ${pn} de 3">${[1, 2, 3].map(k => `<div class="${k <= pn ? 'on' : ''}" style="${k <= pn ? 'background:currentColor' : 'background:rgba(255,255,255,.7)'}"></div>`).join('')}</div>
         <b style="font-size:12.5px">${pl}</b></div></div>`;
-    if (plantsOf(p)) h += `<div class="plant" role="note">${PLANT_SVG(18)}Se detectan plantas acuáticas</div>`;
+    if (plantsOf(p)) h += `<div class="plant" role="note">${PLANT_SVG(18)}Se detectan macrófitas</div>`;
   }
 
   // Línea temporal de cianobacterias (últimas 7 fechas)
@@ -1357,7 +1360,7 @@ function renderReport() {
       R.tu ? [`Promedio de ${R.tu.n} fechas · rango ${Math.round(R.tu.min)}–${Math.round(R.tu.max)}`, R.tuM ? `Categoría más frecuente: ${R.tuM.name.toLowerCase()} (${R.tuM.n})` : ''] : ['Sin datos']) +
     kpi('Materia orgánica disuelta', R.mo ? fmtMo(R.mo.mean) : '–', null,
       R.mo ? [`Índice promedio de ${R.mo.n} fechas · rango ${fmtMo(R.mo.min)}–${fmtMo(R.mo.max)}`, R.moM ? `Categoría más frecuente: ${R.moM.name.toLowerCase()} (${R.moM.n})` : ''] : ['Sin datos']) +
-    (R.plants.length ? kpi('Plantas acuáticas', `${PLANT_SVG(22)} ${R.plants.length}`, '#0D5148', [`Detectadas en: ${R.plants.map(fmtDS).join(', ')}`]) : '') +
+    (R.plants.length ? kpi('Macrófitas', `${PLANT_SVG(22)} ${R.plants.length}`, '#0D5148', [`Detectadas en: ${R.plants.map(fmtDS).join(', ')}`]) : '') +
     `</div>`;
 
   // Matriz de estados (variables × fechas)
@@ -1368,14 +1371,14 @@ function renderReport() {
       const l = r.p ? VARS[k].level(r.p) : 0, t = `${lbl} · ${fmtD(r.d)}: ${l ? VARS[k].names[l - 1] : 'sin datos'}`;
       return `<div class="evc${l ? '' : ' none'}" style="${l ? 'background:' + COL[l] : ''}" title="${t}" role="img" aria-label="${t}"></div>`;
     }).join('')).join('') +
-    `<div class="evl">Plantas acuáticas</div>` + R.rows.map(r => `<div class="evp">${r.p && plantsOf(r.p) ? PLANT_SVG(16) : ''}</div>`).join('') +
+    `<div class="evl">Macrófitas</div>` + R.rows.map(r => `<div class="evp">${r.p && plantsOf(r.p) ? PLANT_SVG(16) : ''}</div>`).join('') +
     `<div></div>` + R.rows.map(r => `<div class="evd">${fmtDS(r.d)}</div>`).join('') + `</div>
     <div class="rep-legend">${[1, 2, 3, 4].map(l => `<span><span class="dot" style="background:${COL[l]}"></span>${['Bajo / oligotrófico', 'Medio / mesotrófico', 'Alto / eutrófico', 'Muy alto / hipereutrófico'][l - 1]}</span>`).join('')}<span><span class="dot hollow"></span>Sin datos</span></div>`;
 
   // Tabla por fecha
   const cat = (l, names) => l ? `<span class="dot" style="background:${COL[l]};width:9px;height:9px;display:inline-block;margin-right:5px"></span>${names[l - 1]}` : '<span class="mut">–</span>';
   h += `<section class="rep-sec"><h3 class="rep-h">Detalle por fecha</h3><div class="mtable-wrap"><table class="mtable rep-table">
-    <thead><tr><th scope="col">Fecha</th><th scope="col">Cianobacterias</th><th scope="col">Dinámica</th><th scope="col">Precisión</th><th scope="col">Plantas</th>
+    <thead><tr><th scope="col">Fecha</th><th scope="col">Cianobacterias</th><th scope="col">Dinámica</th><th scope="col">Precisión</th><th scope="col">Macrófitas</th>
     <th scope="col">Estado trófico</th><th scope="col">Clorofila-a</th><th scope="col">Turbidez</th><th scope="col">NTU</th><th scope="col">MOD</th><th scope="col">Índice</th><th scope="col">Sentinel-3</th><th scope="col">Sentinel-2</th></tr></thead><tbody>` +
     R.rows.slice().reverse().map(({ d, p }) => p ? `<tr>
       <td>${fmtD(d)}</td><td class="tx">${cat(lvCyano(p), ['Verde', 'Amarilla', 'Naranja', 'Roja'])}</td>
@@ -1396,7 +1399,7 @@ function renderReport() {
 function downloadReportCSV() {
   const R = reportData();
   const e = v => { v = String(v == null ? '' : v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-  const head = ['Red', 'Código', 'Punto', 'Cuerpo de agua', 'Municipio', 'Fecha', 'Nivel ciano', 'Alerta ciano', 'Dinámica', 'Precisión', 'Plantas acuáticas',
+  const head = ['Red', 'Código', 'Punto', 'Cuerpo de agua', 'Municipio', 'Fecha', 'Nivel ciano', 'Alerta ciano', 'Dinámica', 'Precisión', 'Macrófitas',
     'Estado trófico', 'Clorofila-a (µg/l)', 'Turbidez', 'Turbidez (NTU)', 'MOD', 'Índice MOD', 'Fecha Sentinel-3', 'Fecha Sentinel-2'];
   const lines = [head.join(';')];
   R.rows.forEach(({ d, p }) => {
@@ -1456,9 +1459,9 @@ const TCOLS = [
   ['Red', (p, l) => l], ['Código', (p, l) => p[CFG[l].id]], ['Punto', (p, l) => p[CFG[l].name]],
   ['Cuerpo de agua', (p, l) => waterBody(l, p)], ['Municipio', (p, l) => muniName(muniOf(l, p))],
   ['Nivel de alerta', p => lvCyano(p) || ''], ['Alerta', p => ALERT_TXT[lvCyano(p)]],
-  ['Descripción', p => getF(p, ['info']) || ''],
+  ['Descripción', p => String(getF(p, ['info']) || '').replace(/plantas acu[aá]ticas/gi, 'macrófitas')],
   ['Dinámica', p => lvCyano(p) ? ['En disminución', 'Estable', 'En aumento'][dynOf(p) + 1] : 'Sin datos'],
-  ['Precisión', p => precOf(p)[1]], ['Plantas acuáticas', p => plantsOf(p) ? 'Sí' : 'No'],
+  ['Precisión', p => precOf(p)[1]], ['Macrófitas', p => plantsOf(p) ? 'Sí' : 'No'],
   ['Fecha Sentinel-3', p => isoToShort(p['S3 Fecha']) || ''], ['Fecha Sentinel-2', p => isoToShort(p['S2 Fecha']) || '']
 ];
 const T_LEVEL = 5;   // índice de la columna "Nivel de alerta"
@@ -1601,7 +1604,7 @@ function renderMuni() {
         <li><span class="dot hollow"></span><span class="mut">Sin datos</span><b class="mono mut">${c[0]}</b></li></ul></article>`;
   };
   document.getElementById('muniCards').innerHTML = VKEYS.map(card).join('') +
-    `<article class="vcard plantcard"><header><span class="vic">${PLANT_SVG(20)}</span><div><h3>Plantas acuáticas</h3><p>Cuerpos de agua donde se detectó vegetación acuática.</p></div></header>
+    `<article class="vcard plantcard"><header><span class="vic">${PLANT_SVG(20)}</span><div><h3>Macrófitas</h3><p>Cuerpos de agua donde se detectaron macrófitas (plantas acuáticas).</p></div></header>
       <div class="vbig"><span class="mono">${M.pl}</span> <span>de ${M.nb} cuerpos de agua</span></div>
       ${M.pl ? `<p class="small">${M.munis.filter(m => m.pl).map(m => `${esc(m.name)} (${m.pl})`).join(' · ')}</p>` : '<p class="small">No se detectaron en este mes.</p>'}</article>`;
 
@@ -1624,11 +1627,11 @@ function renderMuni() {
       <summary>
         <span class="mname"><b>${esc(m.name)}</b><span class="small">${m.nb} cuerpo${m.nb > 1 ? 's' : ''} de agua · ${m.np} punto${m.np > 1 ? 's' : ''}</span></span>
         ${VKEYS.map(k => `<span class="mcell" data-l="${({ cyano: 'Ciano', trophic: 'Trófico', turb: 'Turbidez', mon: 'MOD' })[k]}">${sbar(m.c[k], 12, VINFO[k].t + ': ' + breakdown(k, m.c[k]))}<span class="mnum mono">${m.c[k][4] + m.c[k][3]}<span class="mut">/${m.nb}</span></span></span>`).join('')}
-        <span class="mcell mpl" data-l="Plantas">${m.pl ? PLANT_SVG(16) + `<span class="mono">${m.pl}</span>` : '<span class="mut">–</span>'}</span>
+        <span class="mcell mpl" data-l="Macrófitas">${m.pl ? PLANT_SVG(16) + `<span class="mono">${m.pl}</span>` : '<span class="mut">–</span>'}</span>
         <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </summary>
       <div class="mdet">
-        <div class="mtable-wrap"><table class="mtable bodies"><thead><tr><th scope="col">Cuerpo de agua</th><th scope="col">Puntos</th>${VKEYS.map(k => `<th scope="col">${VINFO[k].t}</th>`).join('')}<th scope="col">Plantas</th><th scope="col"><span class="sr-only">Mapa</span></th></tr></thead><tbody>` +
+        <div class="mtable-wrap"><table class="mtable bodies"><thead><tr><th scope="col">Cuerpo de agua</th><th scope="col">Puntos</th>${VKEYS.map(k => `<th scope="col">${VINFO[k].t}</th>`).join('')}<th scope="col">Macrófitas</th><th scope="col"><span class="sr-only">Mapa</span></th></tr></thead><tbody>` +
         m.bodies.map((b, j) => `<tr><td class="tx"><b>${esc(b.name)}</b></td><td>${b.ids.size}</td>${VKEYS.map(k => `<td class="tx">${chip(k, b.lv[k])}</td>`).join('')}
           <td class="tx">${b.plants ? PLANT_SVG(14) + ' Sí' : '<span class="mut">–</span>'}</td>
           <td><button class="linkbtn" onclick="zoomBody(${i},${j})">Ver en mapa</button></td></tr>`).join('') +
@@ -1647,7 +1650,7 @@ function downloadMuniCSV() {
   const M = computeMuni(curMonth);
   const e = v => { v = String(v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   const head = ['Mes', 'Municipio', 'Cuerpo de agua', 'Puntos', 'Cianobacterias (nivel máx.)', 'Cianobacterias', 'Estado trófico (nivel máx.)', 'Estado trófico',
-    'Turbidez (nivel máx.)', 'Turbidez', 'MOD (nivel máx.)', 'MOD', 'Plantas acuáticas'];
+    'Turbidez (nivel máx.)', 'Turbidez', 'MOD (nivel máx.)', 'MOD', 'Macrófitas'];
   const lines = [head.join(';')];
   M.munis.sort((a, b) => a.name.localeCompare(b.name, 'es')).forEach(m => m.bodies.forEach(b => lines.push([monthLabel(curMonth), m.name, b.name, b.ids.size,
     ...VKEYS.flatMap(k => [b.lv[k] || '', b.lv[k] ? VINFO[k].n[b.lv[k] - 1] : 'Sin datos']), b.plants ? 'Sí' : 'No'].map(e).join(';'))));
@@ -1679,7 +1682,7 @@ function renderLegend() {
   let h = `<div class="ttl">${def.label}</div>` + [4, 3, 2, 1].map(l => `<div class="r"><span class="dot" style="background:${COL[l]}"></span>${def.names[l - 1]}</div>`).join('') +
     `<div class="r"><span class="dot hollow"></span>Sin datos</div>`;
   if (activeVar === 'cyano') h += `<div class="r" style="margin-top:4px;color:var(--muted)">▲ en aumento · ▼ en disminución · ● estable</div>`;
-  h += `<div class="r">${PLANT_SVG(16)}Plantas acuáticas detectadas</div>`;
+  h += `<div class="r">${PLANT_SVG(16)}Macrófitas detectadas</div>`;
   document.getElementById('legend').innerHTML = h;
 }
 const _rp = refreshPanels; refreshPanels = function () { _rp(); renderLegend(); if (curView === 'muni') renderMuni(); if (selected && document.getElementById('pointReport').classList.contains('on')) renderReport(); };
