@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<!-- CyanoSat · Mapa satelital (lee COG de Google Cloud Storage, sin Earth Engine) -->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CyanoSat — Mapa satelital</title>
+<meta name="theme-color" content="#0B2E40">
+<link rel="icon" type="image/png" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+<style>
+:root{
+  --ink:#0B2E40; --ink2:#16405A; --ink-line:#2B5873; --ink-soft:#B9CDD6;
+  --bg:#F4F7F8; --surface:#FFFFFF; --line:#D6E0E4; --line2:#E4EBEE; --muted:#4E6470;
+  --l1:#2E9A57; --l2:#E8B800; --l3:#E8731A; --l4:#C42B2B;
+  --mono:'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --sans:'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+  --hdrH:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);font-size:16px;color:var(--ink);background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+button,input{font:inherit;color:inherit}
+.mono{font-family:var(--mono)}
+.eyebrow{font-size:12.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+
+/* Encabezado */
+#hdr{flex-shrink:0;height:var(--hdrH);display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--ink);color:#fff;position:relative;z-index:1200}
+#hdr .t{display:flex;flex-direction:column;min-width:0}
+#hdr .t b{font-size:18px;font-weight:700;white-space:nowrap}
+#hdr .t span{font-size:13.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search{position:relative;margin-left:auto;width:380px;max-width:52vw}
+.search label{height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:8px;border:1px solid var(--ink-line);background:var(--ink2)}
+.search input{flex:1;min-width:0;border:0;background:transparent;color:#fff;font-size:15.5px;outline:none}
+.search input::placeholder{color:var(--ink-soft)}
+#results{display:none;position:absolute;top:46px;right:0;width:100%;min-width:300px;max-height:60vh;overflow:auto;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(11,46,64,.2);z-index:1600}
+#results .sh{padding:8px 12px 4px;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+#results button{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border:0;background:none;cursor:pointer;font-size:15.5px;line-height:1.35}
+#results button:hover,#results button:focus,#results button.act{background:var(--bg);outline:none}
+#results .sub{font-size:13.5px;color:var(--muted)}
+#results .empty{padding:12px;color:var(--muted)}
+
+/* Mapa y paneles */
+#wrap{position:relative;flex:1;min-height:0}
+#map{position:absolute;inset:0;z-index:0;background:#E9EFF1}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 16px rgba(11,46,64,.12)}
+#layers{position:absolute;top:12px;left:12px;z-index:900;width:285px;max-height:calc(100% - 24px);overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+#layers .opt{display:flex;align-items:center;gap:10px;min-height:38px;cursor:pointer;font-size:15.5px}
+#layers .opt input{width:20px;height:20px;accent-color:var(--ink);flex-shrink:0}
+#layers .opt small{display:block;color:var(--muted);font-size:13px}
+#layers hr{border:0;border-top:1px solid var(--line2)}
+.bmgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bm{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13.5px;cursor:pointer}
+.bm input{position:absolute;opacity:0;pointer-events:none}
+.bm .th{width:100%;height:44px;border-radius:8px;border:2px solid var(--line)}
+.bm input:checked + .th{border-color:var(--ink);box-shadow:0 0 0 2px #fff inset}
+.bm input:focus-visible + .th{outline:2px solid #0E6E78;outline-offset:2px}
+#layersBtn{display:none}
+#legend{position:absolute;left:12px;bottom:24px;z-index:900;padding:12px 14px;font-size:14.5px;display:flex;flex-direction:column;gap:6px;max-width:285px}
+#legend .ttl{font-weight:600}
+#legend .r{display:flex;align-items:center;gap:8px}
+#legend .sw{width:16px;height:16px;border-radius:3px;flex-shrink:0}
+#legend .ramp{height:10px;border-radius:3px;background:linear-gradient(90deg,#2C7BB6,#ABD9E9,#FFFFBF,#FDAE61,#D7191C)}
+#legend .rl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+#legend .lg-tg{display:flex;align-items:center;gap:8px;width:100%;min-height:28px;border:0;background:none;cursor:pointer;font-weight:600;text-align:left;padding:0}
+#legend .lg-tg .ch{margin-left:auto;transition:transform .15s}
+#legend.min .lg-tg .ch{transform:rotate(180deg)}
+#legend .lg-body{display:flex;flex-direction:column;gap:6px}
+#legend.min .lg-body{display:none}
+#legend.min{padding:8px 12px}
+#panel{position:absolute;top:12px;right:12px;bottom:12px;z-index:950;width:410px;display:none;flex-direction:column;overflow:hidden}
+#panel.on{display:flex}
+#panel .ph{display:flex;align-items:flex-start;gap:10px;padding:14px 14px 10px;border-bottom:1px solid var(--line2)}
+#panel .ph h2{font-size:20px;line-height:1.25}
+#panel .ph .s{font-size:14px;color:var(--muted);margin-top:3px}
+#panel .x{margin-left:auto;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;flex-shrink:0}
+#panel .pb{overflow-y:auto;padding:12px 14px 16px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.row .k{flex:1;min-width:0}
+.row .k b{display:block;font-size:15.5px}
+.row .k span{font-size:14px;color:var(--muted)}
+.row .v{display:flex;align-items:center;justify-content:flex-end;gap:6px;text-align:right;font-family:var(--mono);font-size:15px;white-space:nowrap}
+.ico{display:inline-flex;flex-shrink:0}
+.lag .ics{display:inline-flex;gap:4px;vertical-align:-3px;margin-left:6px}
+.chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:14px;font-weight:600;font-family:var(--sans)}
+.note{font-size:14px;color:var(--muted);line-height:1.5}
+.lag{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+.lag:hover{border-color:var(--ink)}
+.lag .n{flex:1;min-width:0}
+.lag .n b{display:block;font-size:15.5px}
+.lag .n span{font-size:14px;color:var(--muted)}
+.dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;background:#C9D3D8}
+#status{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:960;padding:10px 16px;font-size:15px;display:none}
+#status.on{display:block}
+.leaflet-bar{border:1px solid var(--line)!important;box-shadow:none!important;border-radius:8px!important;overflow:hidden}
+.leaflet-control-zoom a{width:40px!important;height:40px!important;line-height:40px!important;font-size:20px!important;color:var(--ink)!important}
+.leaflet-container{font-family:var(--sans)}
+.ctl-locate a{width:40px!important;height:40px!important;display:flex!important;align-items:center;justify-content:center;background:#fff;color:var(--ink);cursor:pointer}
+.ctl-locate a:hover{background:var(--bg)}
+@media (min-width:769px){body.pon .leaflet-bottom.leaflet-right{right:434px}}
+
+/* Pantallas bajas o angostas (también dentro de la ventana de la app): las capas se
+   abren con un botón para no tapar la leyenda */
+@media (max-height:820px), (max-width:1100px){
+  #layersBtn{display:flex;position:absolute;top:12px;left:12px;z-index:901;height:44px;font-size:15.5px;padding:0 12px;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer}
+  #layers{display:none;top:64px;max-height:calc(100% - 76px)}
+  #layers.on{display:flex}
+}
+/* Dentro de la app el título ya está en la ventana: solo se muestran las fechas */
+body.embed #hdr .t b{display:none}
+@media (max-width:768px){
+  :root{--hdrH:auto}
+  #hdr{flex-wrap:wrap;padding:8px 12px;gap:8px}
+  .search{width:100%;max-width:none;margin-left:0}
+  #layersBtn{display:flex;position:absolute;top:12px;left:12px;z-index:901;height:44px;font-size:15.5px;padding:0 12px;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer}
+  #layers{display:none;top:64px}
+  #layers.on{display:flex}
+  #legend{bottom:12px;max-width:230px;font-size:13.5px}
+  #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62%;border-radius:14px 14px 0 0}
+  .leaflet-control-zoom{display:none}
+  #status{top:64px;left:12px;right:12px;transform:none;text-align:center}
+}
+</style>
+</head>
+<body>
+<header id="hdr">
+  <div class="t"><b>Mapa satelital</b><span id="hdrSub">Cargando imágenes…</span></div>
+  <div class="search">
+    <label>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B9CDD6" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" type="search" placeholder="Buscar municipio o laguna" autocomplete="off" aria-label="Buscar municipio o laguna" aria-controls="results">
+    </label>
+    <div id="results" role="listbox"></div>
+  </div>
+</header>
+
+<div id="wrap">
+  <div id="map" role="application" aria-label="Mapa satelital. Tocá un punto de agua para ver sus valores."></div>
+  <button id="layersBtn" aria-expanded="false" aria-controls="layers">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/></svg>Capas</button>
+  <div id="layers" class="card" role="group" aria-label="Capas del mapa">
+    <div class="eyebrow">Capa principal</div>
+    <label class="opt"><input type="radio" name="base" value="s2" checked><span>Alerta biovolumen (S2)<small>Sentinel-2 · 20 m</small></span></label>
+    <label class="opt"><input type="radio" name="base" value="s3"><span>Alerta ficocianina (S3)<small>Sentinel-3 · 300 m</small></span></label>
+    <label class="opt"><input type="radio" name="base" value="rgb"><span>Imagen satelital<small>Sentinel-2 · color</small></span></label>
+    <hr>
+    <div class="eyebrow">Superponer</div>
+    <label class="opt"><input type="checkbox" id="chkMac"><span>Macrófitas</span></label>
+    <label class="opt"><input type="checkbox" id="chkMuni" checked><span>Límites municipales</span></label>
+    <hr>
+    <div class="eyebrow">Mapa base</div>
+    <div class="bmgrid" role="radiogroup" aria-label="Mapa base">
+      <label class="bm"><input type="radio" name="bm" value="calles"><span class="th" style="background:#EDEAE3 linear-gradient(135deg,transparent 45%,#fff 45%,#fff 55%,transparent 55%)"></span>Calles</label>
+      <label class="bm"><input type="radio" name="bm" value="satelite"><span class="th" style="background:linear-gradient(135deg,#3B5A3A,#7C7350 50%,#2E4A5E)"></span>Satélite</label>
+      <label class="bm"><input type="radio" name="bm" value="oscuro"><span class="th" style="background:#1E2226 linear-gradient(135deg,transparent 45%,#3A4046 45%,#3A4046 55%,transparent 55%)"></span>Oscuro</label>
+    </div>
+  </div>
+  <div id="legend" class="card">
+    <button class="lg-tg" id="lgTg" aria-expanded="true" aria-controls="lgBody">Leyenda
+      <svg class="ch" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="lg-body" id="lgBody" aria-live="polite"></div>
+  </div>
+  <div id="status" class="card" role="status" aria-live="polite"></div>
+  <aside id="panel" class="card" aria-label="Información del lugar seleccionado">
+    <div class="ph"><div><h2 id="pTitle"></h2><div class="s" id="pSub"></div></div>
+      <button class="x" onclick="closePanel()" aria-label="Cerrar">✕</button></div>
+    <div class="pb" id="pBody"></div>
+  </aside>
+</div>
+
+<script>
+/* ═════════ Configuración ═════════ */
+try { if (window.self !== window.top) document.body.classList.add('embed'); } catch (e) { document.body.classList.add('embed'); }
+const BUCKET = 'https://storage.googleapis.com/cyanosat-visor-bsas/';
+const PREFIX = 'visor/';
+const COL = { 1: '#2E9A57', 2: '#E8B800', 3: '#E8731A', 4: '#C42B2B' };
+const TINT = { 0: ['#EEF2F4', '#3D4E57'], 1: ['#EAF4EE', '#1B5E36'], 2: ['#FCF5D9', '#5C4800'], 3: ['#FDEEE2', '#7A3A06'], 4: ['#FBEAEA', '#7E1C1C'] };
+const ALERTA = ['Sin dato', 'Riesgo nulo a bajo', 'Riesgo medio', 'Riesgo moderado a alto', 'Riesgo alto'];
+const MAC = { 1: ['#D4B13A', 'Probable'], 2: ['#0D7A6B', 'Se detectan'] };
+const TEMP = { min: 8, max: 28 };
+// Bandas de productos.tif (orden del script de exportación)
+const PB = ['alerta_s2', 'prob', 'alerta_s3', 'cloro', 'turb', 'mod', 'cell', 'dia_s2', 'dia_s3'];
+
+/* ═════════ Utilidades ═════════ */
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const normTxt = s => String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const fmtISO = s => { const m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : '–'; };
+const fmtDia = d => { if (d == null || !isFinite(d)) return null; const t = new Date(d * 86400000); return `${String(t.getUTCDate()).padStart(2, '0')}/${String(t.getUTCMonth() + 1).padStart(2, '0')}/${t.getUTCFullYear()}`; };
+const ok = v => v != null && isFinite(v);
+// Bandera con el color de la alerta (niveles amarillo, naranja y rojo) y plantita de macrófitas
+const FLAG = lv => `<span class="ico" title="Alerta"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V3" stroke="#3D4E57" stroke-width="2" stroke-linecap="round"/><path d="M6 4h12l-3 4.5 3 4.5H6z" fill="${COL[lv]}" stroke="${COL[lv]}" stroke-width="1.2" stroke-linejoin="round"/></svg></span>`;
+const PLANT_PATH = 'M12 21V12M12 12c0-4.2 3-7.5 7.5-7.5 0 4.2-3 7.5-7.5 7.5zM12 15c0-3.3-2.6-6-6.2-6 0 3.4 2.6 6 6.2 6z';
+const PLANT = (sz = 20) => `<span class="ico" title="Macrófitas"><svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="#0D7A6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${PLANT_PATH}"/></svg></span>`;
+const chip = (lv, txt) => { const t = TINT[lv] || TINT[0]; return (lv >= 2 ? FLAG(lv) : '') + `<span class="chip" style="background:${t[0]};color:${t[1]}">${esc(txt)}</span>`; };
+function setStatus(t) { const s = document.getElementById('status'); s.textContent = t || ''; s.classList.toggle('on', !!t); }
+
+// Municipios: mismas reglas que la app
+const MUNI_ALIAS = { 'daireux': 'daireaux', 'alem': 'leandro n. alem', 'general madariaga': 'general juan madariaga', 'san miguel del monte': 'monte', 'veinticinco de mayo': '25 de mayo' };
+const muniKey = raw => { const k = normTxt(raw).replace(/\s+/g, ' '); return MUNI_ALIAS[k] || k; };
+
+// Clases de las variables de calidad (mismas categorías que la app)
+function trofico(cl) { if (!ok(cl)) return null; if (cl <= 10) return [1, 'Oligotrófico']; if (cl <= 50) return [2, 'Mesotrófico']; if (cl <= 250) return [3, 'Eutrófico']; return [4, 'Hipereutrófico']; }
+function nivelTurb(t) { if (!ok(t)) return null; if (t <= 29) return [1, 'Baja']; if (t <= 45) return [2, 'Media']; if (t <= 75) return [3, 'Alta']; return [4, 'Muy alta']; }
+function nivelMod(m, t) {
+  if (!ok(m)) return null;
+  const u = ok(t) && t >= 60 ? [0.5, 0.7, 0.9] : [0.75, 1.5, 3];
+  if (m <= u[0]) return [1, 'Baja']; if (m <= u[1]) return [2, 'Media']; if (m <= u[2]) return [3, 'Alta']; return [4, 'Muy alta'];
+}
+function tempColor(v) {
+  const stops = [[0, [44, 123, 182]], [.25, [171, 217, 233]], [.5, [255, 255, 191]], [.75, [253, 174, 97]], [1, [215, 25, 28]]];
+  const f = Math.max(0, Math.min(1, (v - TEMP.min) / (TEMP.max - TEMP.min)));
+  for (let i = 1; i < stops.length; i++) if (f <= stops[i][0]) {
+    const [a, ca] = stops[i - 1], [b, cb] = stops[i], k = (f - a) / (b - a);
+    return ca.map((c, j) => Math.round(c + (cb[j] - c) * k));
+  }
+  return stops[4][1];
+}
+
+/* ═════════ Lectura de COG ═════════ */
+let BASE = null, FICHA = {};
+const TIFF = {};
+function cog(name) {
+  if (!TIFF[name]) TIFF[name] = GeoTIFF.fromUrl(BASE + name + '.tif', { allowFullFile: false })
+    .then(async t => ({ tiff: t, img: await t.getImage(0) }));
+  return TIFF[name];
+}
+// Valor de un píxel (resolución completa)
+async function pixel(name, lat, lng) {
+  const { img } = await cog(name);
+  const [ox, oy] = img.getOrigin(), [rx, ry] = img.getResolution();
+  const x = Math.floor((lng - ox) / rx), y = Math.floor((lat - oy) / ry);
+  if (x < 0 || y < 0 || x >= img.getWidth() || y >= img.getHeight()) return null;
+  const r = await img.readRasters({ window: [x, y, x + 1, y + 1] });
+  return Array.from(r, b => { const v = b[0]; return Number.isNaN(v) ? null : v; });
+}
+
+// Capa de teselas que pinta un COG en el navegador (WGS84 → Web Mercator)
+const CogLayer = L.GridLayer.extend({
+  createTile(coords, done) {
+    const tile = document.createElement('canvas');
+    const sz = this.getTileSize(); tile.width = sz.x; tile.height = sz.y;
+    this._draw(tile, coords).then(() => done(null, tile), e => { console.warn(e); done(null, tile); });
+    return tile;
+  },
+  async _draw(tile, c) {
+    const { tiff, img } = await cog(this.options.file);
+    const sz = this.getTileSize(), z = c.z;
+    const nw = this._map.unproject([c.x * sz.x, c.y * sz.y], z), se = this._map.unproject([(c.x + 1) * sz.x, (c.y + 1) * sz.y], z);
+    const [ix0, iy0, ix1, iy1] = img.getBoundingBox();
+    const bx0 = Math.max(nw.lng, ix0), bx1 = Math.min(se.lng, ix1), by0 = Math.max(se.lat, iy0), by1 = Math.min(nw.lat, iy1);
+    if (bx0 >= bx1 || by0 >= by1) return;
+    // Columnas y filas de la tesela que cubre la imagen
+    const p0 = this._map.project([by1, bx0], z), p1 = this._map.project([by0, bx1], z);
+    const cx0 = Math.max(0, Math.floor(p0.x - c.x * sz.x)), cx1 = Math.min(sz.x, Math.ceil(p1.x - c.x * sz.x));
+    const cy0 = Math.max(0, Math.floor(p0.y - c.y * sz.y)), cy1 = Math.min(sz.y, Math.ceil(p1.y - c.y * sz.y));
+    const W = Math.max(1, cx1 - cx0), H = Math.max(1, (cy1 - cy0) * 2);
+    const ras = await tiff.readRasters({ bbox: [bx0, by0, bx1, by1], width: W, height: H, resampleMethod: 'nearest' });
+    const ctx = tile.getContext('2d'), out = ctx.createImageData(sz.x, sz.y), d = out.data, paint = this.options.paint;
+    const vals = new Array(ras.length);
+    for (let r = cy0; r < cy1; r++) {
+      const lat = this._map.unproject([0, c.y * sz.y + r + 0.5], z).lat;
+      const sr = Math.floor((by1 - lat) / (by1 - by0) * H);
+      if (sr < 0 || sr >= H) continue;
+      for (let col = cx0; col < cx1; col++) {
+        const sc = Math.min(W - 1, Math.floor((col - cx0 + 0.5) / (cx1 - cx0) * W));
+        const i = sr * W + sc;
+        for (let b = 0; b < ras.length; b++) vals[b] = ras[b][i];
+        const px = paint(vals);
+        if (!px) continue;
+        const o = (r * sz.x + col) * 4;
+        d[o] = px[0]; d[o + 1] = px[1]; d[o + 2] = px[2]; d[o + 3] = px[3];
+      }
+    }
+    ctx.putImageData(out, 0, 0);
+  }
+});
+const ALC = {}; for (const k in COL) ALC[k] = [...hex(COL[k]), 235];
+const MACC = { 1: [...hex(MAC[1][0]), 235], 2: [...hex(MAC[2][0]), 235] };
+const PAINT = {
+  alerta: v => ALC[v[0]] || null,
+  rgb: v => (v[0] + v[1] + v[2]) ? [v[0], v[1], v[2], 255] : null,
+  macro: v => v[2] > 0 ? (MACC[v[0]] || null) : null,
+  temp: v => ok(v[0]) ? [...tempColor(v[0]), 200] : null
+};
+
+/* ═════════ Mapa ═════════ */
+const map = L.map('map', { zoomControl: false, minZoom: 5, maxZoom: 17 }).setView([-36.4, -60.0], 6);
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+/* Mapas base (sin clave): calles (OpenStreetMap), satélite y oscuro (Esri) */
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+const FUENTES = ' · Copernicus Sentinel · ERA5-Land';
+const BASEMAPS = {
+  calles: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' + FUENTES }),
+  satelite: L.layerGroup([
+    L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: 'Imágenes © Esri, Maxar, Earthstar Geographics' + FUENTES }),
+    L.tileLayer(ESRI + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, pane: 'etiquetas' })
+  ]),
+  oscuro: L.layerGroup([
+    L.tileLayer(ESRI + 'Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 16, attribution: '© Esri, HERE, Garmin, OpenStreetMap' + FUENTES }),
+    L.tileLayer(ESRI + 'Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 16, pane: 'etiquetas' })
+  ])
+};
+map.createPane('etiquetas'); map.getPane('etiquetas').style.zIndex = 430; map.getPane('etiquetas').style.pointerEvents = 'none';
+let curBM = null;
+const lineaColor = () => curBM === 'calles' ? '#0B2E40' : '#FFFFFF';
+function setBasemap(k) {
+  if (!BASEMAPS[k]) k = 'calles';
+  Object.entries(BASEMAPS).forEach(([n, l]) => { if (n !== k && map.hasLayer(l)) map.removeLayer(l); });
+  BASEMAPS[k].addTo(map); curBM = k;
+  document.querySelectorAll('input[name=bm]').forEach(r => r.checked = r.value === k);
+  map.getContainer().style.background = k === 'calles' ? '#E9EFF1' : '#15191C';
+  if (typeof MUNI_LAYER !== 'undefined' && MUNI_LAYER) MUNI_LAYER.setStyle({ color: lineaColor(), opacity: k === 'calles' ? .55 : .7 });
+  if (typeof HIL !== 'undefined' && HIL) HIL.setStyle({ color: lineaColor() });
+  try { localStorage.setItem('visorMapaBase', k); } catch (e) { }
+}
+document.querySelectorAll('input[name=bm]').forEach(r => r.addEventListener('change', () => setBasemap(r.value)));
+map.createPane('datos'); map.getPane('datos').style.zIndex = 410;
+map.createPane('limites'); map.getPane('limites').style.zIndex = 420; map.getPane('limites').style.pointerEvents = 'none';
+
+const LAYERS = {};
+function mkLayers() {
+  const o = { pane: 'datos', maxNativeZoom: 17, updateWhenZooming: false, keepBuffer: 1 };
+  LAYERS.s2 = new CogLayer({ ...o, file: 'alerta', paint: PAINT.alerta });
+  LAYERS.s3 = new CogLayer({ ...o, file: 'alerta_s3', paint: PAINT.alerta, opacity: .9 });
+  LAYERS.rgb = new CogLayer({ ...o, file: 'rgb', paint: PAINT.rgb });
+  LAYERS.mac = new CogLayer({ ...o, file: 'macrofitas', paint: PAINT.macro, zIndex: 5 });
+}
+let curBase = 's2';
+function setBase(k) {
+  ['s2', 's3', 'rgb'].forEach(n => { if (n !== k && map.hasLayer(LAYERS[n])) map.removeLayer(LAYERS[n]); });
+  if (!map.hasLayer(LAYERS[k])) LAYERS[k].addTo(map);
+  curBase = k; renderLegend();
+}
+function renderLegend() {
+  let h = '';
+  if (curBase === 's2' || curBase === 's3') {
+    h += `<div class="ttl">${curBase === 's2' ? 'Alerta biovolumen (S2)' : 'Alerta ficocianina (S3)'}</div>`;
+    for (let i = 1; i <= 4; i++) h += `<div class="r"><span class="sw" style="background:${COL[i]}"></span>${ALERTA[i]}</div>`;
+  } else h += `<div class="ttl">Imagen satelital Sentinel-2</div><div class="note">Composición en falso color</div>`;
+  if (map.hasLayer(LAYERS.mac)) {
+    h += `<div class="ttl" style="margin-top:6px">Macrófitas</div>`;
+    h += `<div class="r"><span class="sw" style="background:${MAC[1][0]}"></span>${MAC[1][1]}</div><div class="r"><span class="sw" style="background:${MAC[2][0]}"></span>${MAC[2][1]}</div>`;
+  }
+  h += `<div class="note" style="margin-top:4px">Tocá un punto de agua para ver sus valores</div>`;
+  document.getElementById('lgBody').innerHTML = h;
+}
+// Leyenda minimizable (se recuerda en este navegador; en el celular arranca minimizada)
+function setLegendMin(min) {
+  document.getElementById('legend').classList.toggle('min', min);
+  document.getElementById('lgTg').setAttribute('aria-expanded', String(!min));
+  try { localStorage.setItem('visorLeyendaMin', min ? '1' : '0'); } catch (e) { }
+}
+(() => { let v = null; try { v = localStorage.getItem('visorLeyendaMin'); } catch (e) { }
+  setLegendMin(v === null ? window.matchMedia('(max-width: 768px)').matches : v === '1'); })();
+document.getElementById('lgTg').addEventListener('click', () => setLegendMin(!document.getElementById('legend').classList.contains('min')));
+document.querySelectorAll('input[name=base]').forEach(r => r.addEventListener('change', () => setBase(r.value)));
+document.getElementById('chkMac').addEventListener('change', e => { e.target.checked ? LAYERS.mac.addTo(map) : map.removeLayer(LAYERS.mac); renderLegend(); });
+document.getElementById('chkMuni').addEventListener('change', e => { if (MUNI_LAYER) e.target.checked ? MUNI_LAYER.addTo(map) : map.removeLayer(MUNI_LAYER); });
+document.getElementById('layersBtn').addEventListener('click', e => {
+  const on = document.getElementById('layers').classList.toggle('on'); e.currentTarget.setAttribute('aria-expanded', on);
+});
+
+/* ═════════ Municipios y lagunas ═════════ */
+let MUNIS = [], MUNI_LAYER = null, HIL = null, LAGUNAS = [];
+function ringsOf(g) {
+  if (!g) return [];
+  if (g.type === 'Polygon') return [g.coordinates];
+  if (g.type === 'MultiPolygon') return g.coordinates;
+  if (g.type === 'GeometryCollection') return g.geometries.flatMap(ringsOf);
+  return [];
+}
+function inPoly(lng, lat, polys) {
+  for (const poly of polys) {
+    let inside = false;
+    for (let k = 0; k < poly.length; k++) {
+      const ring = poly[k]; let c = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i], [xj, yj] = ring[j];
+        if ((yi > lat) !== (yj > lat) && lng < (xj - xi) * (lat - yi) / (yj - yi) + xi) c = !c;
+      }
+      if (k === 0) inside = c; else if (c) inside = false;   // agujeros
+    }
+    if (inside) return true;
+  }
+  return false;
+}
+const muniAt = (lat, lng) => MUNIS.find(m => m.bounds.contains([lat, lng]) && inPoly(lng, lat, m.polys));
+
+async function loadMunis() {
+  const gj = await fetch(BUCKET + PREFIX + 'municipios.geojson').then(r => r.json());
+  gj.features = gj.features.filter(f => ringsOf(f.geometry).length);
+  MUNI_LAYER = L.geoJSON(gj, { pane: 'limites', interactive: false, style: { color: lineaColor(), weight: 1, opacity: curBM === 'calles' ? .55 : .7, fill: false } });
+  if (document.getElementById('chkMuni').checked) MUNI_LAYER.addTo(map);
+  MUNIS = gj.features.map(f => {
+    const nombre = f.properties.Municipio;
+    return { nombre, key: muniKey(nombre), polys: ringsOf(f.geometry), bounds: L.geoJSON(f).getBounds(), feature: f };
+  });
+}
+
+// Lagunas: de los puntos de monitoreo de la app (última fecha de cada red).
+// Si existe visor/lagunas.geojson (polígonos con Nombre y Municipio), se suma.
+function waterBody(layer, p) {
+  if (layer === 'ADA') return String(p['Laguna Rio'] || p.Nombre || p.CodPunto || '').trim();
+  return String(p.PUNTO || '').split(/[-:(\/]|\.\s/)[0].trim();
+}
+async function loadLagunas() {
+  const byKey = {};
+  const add = (nombre, muni, lat, lng, extra) => {
+    if (!nombre) return;
+    const k = normTxt(nombre) + '|' + muniKey(muni);
+    if (!byKey[k]) byKey[k] = { nombre, muni: muni || '', muniKey: muniKey(muni), pts: [], ...extra };
+    if (ok(lat) && ok(lng)) byKey[k].pts.push([lat, lng]);
+  };
+  try {
+    const man = await fetch('manifest.json').then(r => r.json());
+    const CF = { ADA: 'Municipio', SRH: 'MUNICIPIO' };
+    for (const l of ['ADA', 'SRH']) {
+      const ds = (man[l.toLowerCase()] || []).slice().sort(); if (!ds.length) continue;
+      const gj = await fetch(`data/CianoAlert_${l}_${ds[ds.length - 1]}.geojson`).then(r => r.json());
+      gj.features.forEach(f => {
+        const g = f.geometry; if (!g || g.type !== 'Point') return;
+        add(waterBody(l, f.properties), f.properties[CF[l]], g.coordinates[1], g.coordinates[0]);
+      });
+    }
+  } catch (e) { console.warn('Sin puntos de monitoreo (¿abierto sin servidor?)', e); }
+  try {
+    const r = await fetch(BUCKET + PREFIX + 'lagunas.geojson');
+    if (r.ok) {
+      const gj = await r.json();
+      gj.features.forEach(f => {
+        const b = L.geoJSON(f).getBounds(); if (!b.isValid()) return;
+        const p = f.properties, c = b.getCenter();
+        add(p.Nombre || p.nombre, p.Municipio || p.municipio, c.lat, c.lng, { feature: f });
+      });
+    }
+  } catch (e) { /* capa opcional */ }
+  LAGUNAS = Object.values(byKey).filter(l => l.pts.length).map(l => {
+    l.bounds = l.feature ? L.geoJSON(l.feature).getBounds() : L.latLngBounds(l.pts);
+    if (!l.muni) { const m = muniAt(l.pts[0][0], l.pts[0][1]); if (m) { l.muni = m.nombre; l.muniKey = m.key; } }
+    return l;
+  }).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+}
+const muniLabel = k => { const m = MUNIS.find(x => x.key === k); return m ? m.nombre : k; };
+
+/* ═════════ Buscador ═════════ */
+const q = document.getElementById('q'), res = document.getElementById('results');
+let hits = [], act = -1;
+function search(t) {
+  const s = normTxt(t); if (s.length < 2) { res.style.display = 'none'; return; }
+  const m = MUNIS.filter(x => normTxt(x.nombre).includes(s)).slice(0, 6);
+  const l = LAGUNAS.filter(x => normTxt(x.nombre).includes(s) || normTxt(x.muni).includes(s)).slice(0, 10);
+  hits = [...m.map(x => ({ t: 'm', x })), ...l.map(x => ({ t: 'l', x }))]; act = -1;
+  let h = '';
+  if (m.length) h += `<div class="sh">Municipios</div>` + m.map((x, i) => `<button role="option" data-i="${i}">${PIN}<span>${esc(x.nombre)}</span></button>`).join('');
+  if (l.length) h += `<div class="sh">Lagunas y cuerpos de agua</div>` + l.map((x, i) => `<button role="option" data-i="${m.length + i}">${DROP}<span>${esc(x.nombre)}<br><span class="sub">${esc(muniLabel(x.muniKey))}</span></span></button>`).join('');
+  res.innerHTML = h || `<div class="empty">Sin resultados para «${esc(t)}»</div>`;
+  res.style.display = 'block';
+}
+const PIN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+const DROP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0E6E78" stroke-width="1.8" aria-hidden="true"><path d="M3 9c3-2 6 2 9 0s6-2 9 0M3 15c3-2 6 2 9 0s6-2 9 0"/></svg>';
+function pick(i) {
+  const h = hits[i]; if (!h) return;
+  res.style.display = 'none'; q.value = h.x.nombre; q.blur();
+  h.t === 'm' ? showMuni(h.x) : showLaguna(h.x);
+}
+q.addEventListener('input', () => search(q.value));
+q.addEventListener('keydown', e => {
+  const bs = res.querySelectorAll('button');
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); act = (act + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length; bs.forEach((b, j) => b.classList.toggle('act', j === act)); }
+  else if (e.key === 'Enter') { e.preventDefault(); pick(act >= 0 ? act : 0); }
+  else if (e.key === 'Escape') res.style.display = 'none';
+});
+res.addEventListener('click', e => { const b = e.target.closest('button'); if (b) pick(+b.dataset.i); });
+document.addEventListener('click', e => { if (!e.target.closest('.search')) res.style.display = 'none'; });
+
+/* ═════════ Panel de información ═════════ */
+const panel = document.getElementById('panel');
+let marker = null;
+function openPanel(title, sub, body) {
+  document.getElementById('pTitle').textContent = title;
+  document.getElementById('pSub').innerHTML = sub || '';
+  document.getElementById('pBody').innerHTML = body;
+  panel.classList.add('on'); document.body.classList.add('pon');
+}
+function closePanel() { panel.classList.remove('on'); document.body.classList.remove('pon'); if (marker) { map.removeLayer(marker); marker = null; } }
+function highlight(feature) {
+  if (HIL) map.removeLayer(HIL);
+  HIL = feature ? L.geoJSON(feature, { pane: 'limites', interactive: false, style: { color: lineaColor(), weight: 3, opacity: 1, fill: false } }).addTo(map) : null;
+}
+
+// Alerta satelital en un punto de laguna (el píxel S2 o, si cae en la orilla, los vecinos)
+async function alertaPunto(lat, lng) {
+  const v = await pixel('alerta', lat, lng).catch(() => null);
+  if (v && v[0] >= 1) return v[0];
+  const d = 0.0006; let best = 0;
+  for (const [a, b] of [[d, 0], [-d, 0], [0, d], [0, -d]]) {
+    const w = await pixel('alerta', lat + a, lng + b).catch(() => null);
+    if (w && w[0] > best) best = w[0];
+  }
+  return best;
+}
+
+async function showMuni(m) {
+  if (marker) { map.removeLayer(marker); marker = null; }
+  highlight(m.feature);
+  map.fitBounds(m.bounds, { paddingTopLeft: [20, 20], paddingBottomRight: isMob() ? [20, Math.round(innerHeight * .55)] : [430, 20] });
+  const lags = LAGUNAS.filter(l => l.muniKey === m.key || (!l.muniKey && m.bounds.contains(l.pts[0])));
+  let body = lags.length
+    ? `<div class="eyebrow">Lagunas y cuerpos de agua (${lags.length})</div>` + lags.map((l, i) => `<button class="lag" data-i="${i}"><span class="dot" id="ld${i}"></span><span class="n"><b>${esc(l.nombre)}</b><span id="lt${i}">Consultando imagen…</span></span>›</button>`).join('')
+    : `<div class="note">No hay lagunas con punto de monitoreo cargadas en este municipio. Podés tocar cualquier cuerpo de agua en el mapa para ver sus valores.</div>`;
+  body += `<div class="note">El color indica la alerta biovolumen (S2) de la última imagen en el punto de monitoreo de cada laguna.</div>`;
+  openPanel(m.nombre, 'Municipio', body);
+  document.querySelectorAll('#pBody .lag').forEach(b => b.addEventListener('click', () => showLaguna(lags[+b.dataset.i])));
+  lags.forEach(async (l, i) => {
+    const [lv, mc] = await Promise.all([alertaPunto(l.pts[0][0], l.pts[0][1]), pixel('macrofitas', l.pts[0][0], l.pts[0][1]).catch(() => null)]);
+    const dt = document.getElementById('ld' + i), tt = document.getElementById('lt' + i); if (!dt) return;
+    const ics = (lv >= 2 ? FLAG(lv) : '') + (mc && mc[2] > 0 && mc[0] >= 1 ? PLANT() : '');
+    if (lv >= 1) { dt.style.background = COL[lv]; tt.innerHTML = esc(ALERTA[lv]) + (ics ? `<span class="ics">${ics}</span>` : ''); }
+    else tt.innerHTML = 'Sin dato en la última imagen (nubes o fuera de cobertura)' + (ics ? `<span class="ics">${ics}</span>` : '');
+  });
+}
+function showLaguna(l) {
+  if (l.feature) highlight(l.feature); else highlight(null);
+  const p = l.pts[0];
+  const z = Math.max(map.getZoom(), l.feature && l.bounds.isValid() ? map.getBoundsZoom(l.bounds) : 14);
+  // En el celular el panel tapa la mitad inferior: el punto se ubica más arriba
+  const c = isMob() ? map.unproject(map.project(p, z).add([0, innerHeight * .25]), z) : map.unproject(map.project(p, z).add([205, 0]), z);
+  map.flyTo(c, z, { duration: .8 });
+  queryAt(L.latLng(p[0], p[1]), l.nombre, l.muni ? muniLabel(l.muniKey) : '');
+}
+
+async function queryAt(ll, title, sub) {
+  if (marker) map.removeLayer(marker);
+  marker = L.circleMarker(ll, { radius: 7, color: '#0B2E40', weight: 2, fillColor: '#fff', fillOpacity: 1, pane: 'markerPane' }).addTo(map);
+  const m = muniAt(ll.lat, ll.lng);
+  const coord = `<span class="mono">${ll.lat.toFixed(4)}, ${ll.lng.toFixed(4)}</span>`;
+  openPanel(title || 'Punto seleccionado', [sub || (m ? m.nombre : ''), coord].filter(Boolean).join(' · '), '<div class="note">Consultando las imágenes…</div>');
+  const get = n => pixel(n, ll.lat, ll.lng).catch(e => { console.warn(n, e); return null; });
+  const [a2, a3, pr, mac, tp] = await Promise.all([get('alerta'), get('alerta_s3'), get('productos'), get('macrofitas'), get('temperatura')]);
+  const P = {}; if (pr) PB.forEach((k, i) => P[k] = pr[i]);
+  const lv2 = a2 && a2[0] >= 1 ? a2[0] : 0, lv3 = a3 && a3[0] >= 1 ? a3[0] : 0;
+  const noAgua = !lv2 && !lv3 && !ok(P.cloro) && !(mac && mac[2] > 0);
+  let h = '';
+  if (noAgua) h += `<div class="note">No hay datos de agua en este punto en la última imagen. Puede ser tierra firme, nubes o un cuerpo de agua sin imagen limpia en los últimos 15 días.</div>`;
+  else {
+    const f2 = fmtDia(P.dia_s2), f3 = fmtDia(P.dia_s3);
+    h += `<div class="eyebrow">Cianobacterias</div>`;
+    h += row('Alerta biovolumen (S2)', [lv2 && ok(P.prob) ? `Precisión ${Math.round(P.prob)} %` : '', f2 ? 'imagen ' + f2 : ''].filter(Boolean).join(' · '), lv2 ? chip(lv2, ALERTA[lv2]) : chip(0, 'Sin dato'));
+    h += row('Alerta ficocianina (S3)', f3 ? 'Imagen ' + f3 : '', lv3 ? chip(lv3, ALERTA[lv3]) : chip(0, 'Sin dato'));
+    if (ok(P.cell) && P.cell >= 0) h += row('Densidad celular', 'Diques y embalses', `${Math.round(P.cell).toLocaleString('es-AR')} cél/ml`);
+    h += `<div class="eyebrow">Calidad del agua</div>`;
+    const tr = trofico(P.cloro), tu = nivelTurb(P.turb), mo = nivelMod(P.mod, P.turb);
+    h += row('Estado trófico', ok(P.cloro) ? `Clorofila-a ${Math.round(P.cloro)} µg/l` : '', tr ? chip(tr[0], tr[1]) : chip(0, 'Sin dato'));
+    h += row('Turbidez', ok(P.turb) ? `${Math.round(P.turb)} NTU` : '', tu ? chip(tu[0], tu[1]) : chip(0, 'Sin dato'));
+    h += row('Materia orgánica disuelta', ok(P.mod) ? `Índice ${P.mod.toFixed(2)}` : '', mo ? chip(mo[0], mo[1]) : chip(0, 'Sin dato'));
+    h += `<div class="eyebrow">Vegetación</div>`;
+    if (mac && mac[2] > 0) {
+      const n = mac[2], pos = Math.round(mac[1] * n / 100), c = mac[0];
+      const txt = c === 2 ? 'Se detectan' : c === 1 ? 'Probable' : 'No se detectan';
+      const mc = c === 2 ? ['#DDEFEB', '#0B5A4F'] : c === 1 ? ['#F6EFD3', '#5C4800'] : ['#EEF2F4', '#3D4E57'];
+      h += row('Macrófitas', `${pos} de ${n} fecha${n > 1 ? 's' : ''} con detección (${mac[1]}\u00a0%)`, (c >= 1 ? PLANT() : '') + `<span class="chip" style="background:${mc[0]};color:${mc[1]}">${txt}</span>`);
+    } else h += row('Macrófitas', '', chip(0, 'Sin dato'));
+  }
+  h += `<div class="eyebrow">Temperatura del agua</div>`;
+  h += row('Producto ERA-5', FICHA.fecha_era5 ? 'Día ' + fmtISO(FICHA.fecha_era5) : '', tp && ok(tp[0]) ? `${tp[0].toFixed(1)} °C` : 'Sin dato');
+  h += `<div class="note">Valores estimados por satélite (Sentinel-2 a 20–60 m, Sentinel-3 a 300 m). Para decisiones sanitarias, consultá las indicaciones de las autoridades locales.</div>`;
+  document.getElementById('pBody').innerHTML = h;
+}
+const row = (k, sub, v) => `<div class="row"><div class="k"><b>${esc(k)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div><div class="v">${v}</div></div>`;
+const isMob = () => window.matchMedia('(max-width: 768px)').matches;
+map.on('click', e => { const ly = document.getElementById('layers'); if (ly.classList.contains('on')) { ly.classList.remove('on'); document.getElementById('layersBtn').setAttribute('aria-expanded', 'false'); } if (BASE) { highlight(null); queryAt(e.latlng); } });
+
+/* ═════════ Mi ubicación ═════════ */
+const LocCtl = L.Control.extend({
+  options: { position: 'bottomright' },
+  onAdd() {
+    const c = L.DomUtil.create('div', 'leaflet-bar ctl-locate');
+    c.innerHTML = '<a href="#" role="button" title="Ir a mi ubicación" aria-label="Ir a mi ubicación"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></a>';
+    L.DomEvent.disableClickPropagation(c);
+    L.DomEvent.on(c.firstChild, 'click', e => { L.DomEvent.preventDefault(e); locateMe(); });
+    return c;
+  }
+});
+new LocCtl().addTo(map);
+let userMk = null;
+function showUser(ll, acc) {
+  if (userMk) map.removeLayer(userMk);
+  userMk = L.layerGroup([
+    L.circle(ll, { radius: acc || 0, color: '#0B2E40', weight: 1, fillColor: '#0E6E78', fillOpacity: .12, interactive: false, pane: 'markerPane' }),
+    L.circleMarker(ll, { radius: 7, color: '#fff', weight: 3, fillColor: '#0E6E78', fillOpacity: 1, interactive: false, pane: 'markerPane' })
+  ]).addTo(map);
+  map.flyTo(ll, Math.max(map.getZoom(), 12), { duration: .8 });
+  const m = muniAt(ll.lat, ll.lng);
+  setStatus(m ? `Estás en ${m.nombre}. Tocá un cuerpo de agua cercano para ver sus valores.` : 'Ubicación encontrada. Tocá un cuerpo de agua cercano para ver sus valores.');
+  setTimeout(() => setStatus(''), 6000);
+}
+function locateMe() {
+  // App Android: la ubicación puede venir de la app nativa (vía la página principal)
+  let nat = null; try { nat = window._nativeLocation || (window.parent !== window && window.parent._nativeLocation); } catch (e) { }
+  if (nat) { showUser(L.latLng(nat), 0); return; }
+  if (!navigator.geolocation) { setStatus('Este dispositivo no permite geolocalización.'); setTimeout(() => setStatus(''), 5000); return; }
+  setStatus('Buscando tu ubicación…');
+  navigator.geolocation.getCurrentPosition(
+    p => showUser(L.latLng(p.coords.latitude, p.coords.longitude), p.coords.accuracy),
+    err => { setStatus(err.code === 1 ? 'Permiso de ubicación denegado. Activalo en la configuración del navegador.' : 'No se pudo obtener tu ubicación.'); setTimeout(() => setStatus(''), 6000); },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+}
+
+/* ═════════ Inicio ═════════ */
+async function ultimaCarpeta() {
+  try {
+    const r = await fetch(`https://storage.googleapis.com/storage/v1/b/cyanosat-visor-bsas/o?prefix=${PREFIX}&delimiter=/&fields=prefixes`).then(r => r.json());
+    const ps = (r.prefixes || []).filter(p => /\/\d{8}\/$/.test(p)).sort();
+    if (ps.length) return ps[ps.length - 1];
+  } catch (e) { console.warn('Listado JSON no disponible, se usa XML', e); }
+  const x = await fetch(`${BUCKET}?prefix=${PREFIX}&delimiter=/`).then(r => r.text());
+  const ps = [...x.matchAll(/<Prefix>(visor\/\d{8}\/)<\/Prefix>/g)].map(m => m[1]).sort();
+  if (!ps.length) throw new Error('No hay fechas exportadas');
+  return ps[ps.length - 1];
+}
+(() => { let v = null; try { v = localStorage.getItem('visorMapaBase'); } catch (e) { } setBasemap(v || 'oscuro'); })();
+(async () => {
+  try {
+    const carpeta = await ultimaCarpeta();
+    BASE = BUCKET + carpeta;
+    FICHA = (await fetch(BASE + 'ficha.geojson').then(r => r.json())).features[0].properties;
+    document.getElementById('hdrSub').textContent = `Sentinel-2 ${fmtISO(FICHA.fecha_s2)} · Sentinel-3 ${fmtISO(FICHA.fecha_s3)} · últimos 15 días`;
+    mkLayers(); setBase('s2');
+    await loadMunis();
+    await loadLagunas();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('hdrSub').textContent = 'No se pudieron cargar las imágenes';
+    setStatus('No se pudieron cargar las imágenes satelitales. Probá de nuevo en unos minutos.');
+  }
+})();
+</script>
+</body>
+</html>

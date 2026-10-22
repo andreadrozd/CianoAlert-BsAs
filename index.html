@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build 2026-10-14 · rediseño -->
+<!-- build 2026-10-22 · rediseño + visor satelital propio -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -641,10 +641,10 @@ body.muni-on #right,body.muni-on #left{display:none}
 </div>
 
 <!-- GEE -->
-<div class="modal gee" id="geeModal" role="dialog" aria-modal="true" aria-label="Mapa interactivo satelital">
+<div class="modal gee" id="geeModal" role="dialog" aria-modal="true" aria-label="Mapa satelital">
   <div class="mbox">
-    <div class="mhead"><h3>Mapa interactivo satelital (Earth Engine)</h3><button class="btn" onclick="closeGee()" aria-label="Cerrar">✕</button></div>
-    <iframe id="geeFrame" title="Mapa interactivo Earth Engine" allow="geolocation; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <div class="mhead"><h3>Mapa satelital</h3><button class="btn" onclick="closeGee()" aria-label="Cerrar">✕</button></div>
+    <iframe id="geeFrame" title="Mapa satelital" allow="geolocation; fullscreen"></iframe>
   </div>
 </div>
 
@@ -833,7 +833,14 @@ body.muni-on #right,body.muni-on #left{display:none}
 
         <section id="man-satelital">
           <h2>14. Mapa satelital</h2>
-          <p>El botón <b>Mapa satelital</b> abre una aplicación de Google Earth Engine con las imágenes y productos satelitales, para explorar el territorio con más detalle. Se cierra con la ✕.</p>
+          <p>El botón <b>Mapa satelital</b> abre el mapa con los productos satelitales de toda la provincia, a nivel de píxel. Muestra la imagen más reciente (mosaico de los últimos 15 días). Se cierra con la ✕.</p>
+          <ul>
+            <li><b>Capa principal</b> (se elige una): <b>Alerta biovolumen (S2)</b>, de Sentinel-2 a 20 m; <b>Alerta ficocianina (S3)</b>, de Sentinel-3 a 300 m, y <b>Imagen satelital</b> en color.</li>
+            <li><b>Superponer</b>: <b>Macrófitas</b> (probable o se detectan) y <b>límites municipales</b>.</li>
+            <li><b>Tocá un punto de agua</b> para ver sus valores: las dos alertas de cianobacterias con su precisión, el estado trófico (clorofila-a), la turbidez, la materia orgánica disuelta, las macrófitas (en cuántas fechas se detectaron), la temperatura del agua (producto ERA-5) y la fecha de la imagen en ese píxel.</li>
+            <li><b>Buscador</b>: escribí un <b>municipio</b> para centrar el mapa en él y ver la lista de sus lagunas con la alerta de la última imagen; o escribí el nombre de una <b>laguna</b> para ir directo a ella.</li>
+            <li>Si un lugar aparece sin color, en los últimos 15 días no hubo una imagen limpia (por ejemplo, por nubes).</li>
+          </ul>
         </section>
 
         <section id="man-celular">
@@ -1513,7 +1520,8 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) { m.id === 'geeModal' ? closeGee() : closeModal(m.id); } }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.querySelector('.modal.open') && document.getElementById('pointReport').classList.contains('on')) { closeReport(); return; } if (e.key === 'Escape') { document.querySelectorAll('.modal.open').forEach(m => m.id === 'geeModal' ? closeGee() : closeModal(m.id)); } });
-const GEE_URL = 'https://ee-undav.projects.earthengine.app/view/cyanosatbsas-movilapp';
+// Visor satelital propio (lee los productos desde Google Cloud Storage)
+const GEE_URL = 'visor.html';
 function openGee() { const f = document.getElementById('geeFrame'); if (f.getAttribute('src') !== GEE_URL) f.setAttribute('src', GEE_URL); openModal('geeModal'); }
 function closeGee() { closeModal('geeModal'); document.getElementById('geeFrame').setAttribute('src', 'about:blank'); }
 function toggleSheet() { document.getElementById('left').classList.toggle('expanded'); }
