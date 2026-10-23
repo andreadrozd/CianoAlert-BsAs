@@ -54,6 +54,8 @@ button,input{font:inherit;color:inherit}
 #layers .opt input{width:20px;height:20px;accent-color:var(--ink);flex-shrink:0}
 #layers .opt small{display:block;color:var(--muted);font-size:13px}
 #layers hr{border:0;border-top:1px solid var(--line2)}
+.lyh{display:flex;align-items:center;justify-content:space-between}
+.lnk{border:0;background:none;color:#0E6E78;font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline}
 .bmgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .bm{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13.5px;cursor:pointer}
 .bm input{position:absolute;opacity:0;pointer-events:none}
@@ -144,14 +146,13 @@ body.embed #hdr .t b{display:none}
   <button id="layersBtn" aria-expanded="false" aria-controls="layers">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/></svg>Capas</button>
   <div id="layers" class="card" role="group" aria-label="Capas del mapa">
-    <div class="eyebrow">Capa principal</div>
-    <label class="opt"><input type="radio" name="base" value="s2" checked><span>Alerta biovolumen (S2)<small>Sentinel-2 · 20 m</small></span></label>
-    <label class="opt"><input type="radio" name="base" value="s3"><span>Alerta ficocianina (S3)<small>Sentinel-3 · 300 m</small></span></label>
-    <label class="opt"><input type="radio" name="base" value="rgb"><span>Imagen satelital<small>Sentinel-2 · color</small></span></label>
-    <hr>
-    <div class="eyebrow">Superponer</div>
-    <label class="opt"><input type="checkbox" id="chkMac"><span>Macrófitas</span></label>
+    <div class="lyh"><span class="eyebrow">Capas</span><button type="button" class="lnk" id="lyNone">Ocultar todas</button></div>
+    <label class="opt"><input type="checkbox" class="ly" value="mac"><span>Macrófitas<small>Sentinel-2 · 20 m</small></span></label>
+    <label class="opt"><input type="checkbox" class="ly" value="s2" checked><span>Alerta biovolumen (S2)<small>Sentinel-2 · 20 m</small></span></label>
+    <label class="opt"><input type="checkbox" class="ly" value="s3"><span>Alerta ficocianina (S3)<small>Sentinel-3 · 300 m</small></span></label>
+    <label class="opt"><input type="checkbox" class="ly" value="rgb"><span>Imagen satelital<small>Sentinel-2 · color</small></span></label>
     <label class="opt"><input type="checkbox" id="chkMuni" checked><span>Límites municipales</span></label>
+    <div class="note">Las capas de arriba se dibujan sobre las de abajo.</div>
     <hr>
     <div class="eyebrow">Mapa base</div>
     <div class="bmgrid" role="radiogroup" aria-label="Mapa base">
@@ -181,7 +182,7 @@ const PREFIX = 'visor/';
 const COL = { 1: '#2E9A57', 2: '#E8B800', 3: '#E8731A', 4: '#C42B2B' };
 const TINT = { 0: ['#EEF2F4', '#3D4E57'], 1: ['#EAF4EE', '#1B5E36'], 2: ['#FCF5D9', '#5C4800'], 3: ['#FDEEE2', '#7A3A06'], 4: ['#FBEAEA', '#7E1C1C'] };
 const ALERTA = ['Sin dato', 'Riesgo nulo a bajo', 'Riesgo medio', 'Riesgo moderado a alto', 'Riesgo alto'];
-const MAC = { 1: ['#D4B13A', 'Probable'], 2: ['#0D7A6B', 'Se detectan'] };
+const MAC = { 1: ['#7FE6CF', 'Probable'], 2: ['#00838F', 'Se detectan'] };   // cyan claro verdoso / cyan oscuro
 const TEMP = { min: 8, max: 28 };
 // Bandas de productos.tif (orden del script de exportación)
 const PB = ['alerta_s2', 'prob', 'alerta_s3', 'cloro', 'turb', 'mod', 'cell', 'dia_s2', 'dia_s3'];
@@ -326,27 +327,35 @@ map.createPane('limites'); map.getPane('limites').style.zIndex = 420; map.getPan
 const LAYERS = {};
 function mkLayers() {
   const o = { pane: 'datos', maxNativeZoom: 17, updateWhenZooming: false, keepBuffer: 1 };
-  LAYERS.s2 = new CogLayer({ ...o, file: 'alerta', paint: PAINT.alerta });
-  LAYERS.s3 = new CogLayer({ ...o, file: 'alerta_s3', paint: PAINT.alerta, opacity: .9 });
-  LAYERS.rgb = new CogLayer({ ...o, file: 'rgb', paint: PAINT.rgb });
+  // Orden de dibujo: imagen color abajo, luego S3, S2 y macrófitas arriba
+  LAYERS.rgb = new CogLayer({ ...o, file: 'rgb', paint: PAINT.rgb, zIndex: 1 });
+  LAYERS.s3 = new CogLayer({ ...o, file: 'alerta_s3', paint: PAINT.alerta, opacity: .9, zIndex: 2 });
+  LAYERS.s2 = new CogLayer({ ...o, file: 'alerta', paint: PAINT.alerta, zIndex: 3 });
   LAYERS.mac = new CogLayer({ ...o, file: 'macrofitas', paint: PAINT.macro, zIndex: 5 });
 }
-let curBase = 's2';
-function setBase(k) {
-  ['s2', 's3', 'rgb'].forEach(n => { if (n !== k && map.hasLayer(LAYERS[n])) map.removeLayer(LAYERS[n]); });
-  if (!map.hasLayer(LAYERS[k])) LAYERS[k].addTo(map);
-  curBase = k; renderLegend();
+// Cada capa se prende o apaga por separado (pueden estar varias o ninguna)
+function syncLayers() {
+  document.querySelectorAll('input.ly').forEach(c => {
+    const l = LAYERS[c.value]; if (!l) return;
+    if (c.checked && !map.hasLayer(l)) l.addTo(map);
+    if (!c.checked && map.hasLayer(l)) map.removeLayer(l);
+  });
+  renderLegend();
 }
 function renderLegend() {
   let h = '';
-  if (curBase === 's2' || curBase === 's3') {
-    h += `<div class="ttl">${curBase === 's2' ? 'Alerta biovolumen (S2)' : 'Alerta ficocianina (S3)'}</div>`;
-    for (let i = 1; i <= 4; i++) h += `<div class="r"><span class="sw" style="background:${COL[i]}"></span>${ALERTA[i]}</div>`;
-  } else h += `<div class="ttl">Imagen satelital Sentinel-2</div><div class="note">Composición en falso color</div>`;
-  if (map.hasLayer(LAYERS.mac)) {
-    h += `<div class="ttl" style="margin-top:6px">Macrófitas</div>`;
+  const on = k => LAYERS[k] && map.hasLayer(LAYERS[k]);
+  if (on('mac')) {
+    h += `<div class="ttl">Macrófitas</div>`;
     h += `<div class="r"><span class="sw" style="background:${MAC[1][0]}"></span>${MAC[1][1]}</div><div class="r"><span class="sw" style="background:${MAC[2][0]}"></span>${MAC[2][1]}</div>`;
   }
+  if (on('s2') || on('s3')) {
+    const t = on('s2') && on('s3') ? 'Alerta biovolumen (S2) y ficocianina (S3)' : on('s2') ? 'Alerta biovolumen (S2)' : 'Alerta ficocianina (S3)';
+    h += `<div class="ttl"${h ? ' style="margin-top:6px"' : ''}>${t}</div>`;
+    for (let i = 1; i <= 4; i++) h += `<div class="r"><span class="sw" style="background:${COL[i]}"></span>${ALERTA[i]}</div>`;
+  }
+  if (on('rgb')) h += `<div class="ttl"${h ? ' style="margin-top:6px"' : ''}>Imagen satelital Sentinel-2</div><div class="note">Composición en falso color</div>`;
+  if (!h) h += `<div class="note">No hay capas satelitales activas. Prendelas desde «Capas».</div>`;
   h += `<div class="note" style="margin-top:4px">Tocá un punto de agua para ver sus valores</div>`;
   document.getElementById('lgBody').innerHTML = h;
 }
@@ -359,8 +368,12 @@ function setLegendMin(min) {
 (() => { let v = null; try { v = localStorage.getItem('visorLeyendaMin'); } catch (e) { }
   setLegendMin(v === null ? window.matchMedia('(max-width: 768px)').matches : v === '1'); })();
 document.getElementById('lgTg').addEventListener('click', () => setLegendMin(!document.getElementById('legend').classList.contains('min')));
-document.querySelectorAll('input[name=base]').forEach(r => r.addEventListener('change', () => setBase(r.value)));
-document.getElementById('chkMac').addEventListener('change', e => { e.target.checked ? LAYERS.mac.addTo(map) : map.removeLayer(LAYERS.mac); renderLegend(); });
+document.querySelectorAll('input.ly').forEach(c => c.addEventListener('change', syncLayers));
+document.getElementById('lyNone').addEventListener('click', () => {
+  document.querySelectorAll('input.ly').forEach(c => c.checked = false);
+  const m = document.getElementById('chkMuni'); if (m.checked) { m.checked = false; m.dispatchEvent(new Event('change')); }
+  syncLayers();
+});
 document.getElementById('chkMuni').addEventListener('change', e => { if (MUNI_LAYER) e.target.checked ? MUNI_LAYER.addTo(map) : map.removeLayer(MUNI_LAYER); });
 document.getElementById('layersBtn').addEventListener('click', e => {
   const on = document.getElementById('layers').classList.toggle('on'); e.currentTarget.setAttribute('aria-expanded', on);
@@ -563,7 +576,7 @@ async function queryAt(ll, title, sub) {
     if (mac && mac[2] > 0) {
       const n = mac[2], pos = Math.round(mac[1] * n / 100), c = mac[0];
       const txt = c === 2 ? 'Se detectan' : c === 1 ? 'Probable' : 'No se detectan';
-      const mc = c === 2 ? ['#DDEFEB', '#0B5A4F'] : c === 1 ? ['#F6EFD3', '#5C4800'] : ['#EEF2F4', '#3D4E57'];
+      const mc = c === 2 ? ['#D2EEF1', '#005A62'] : c === 1 ? ['#DDF7F0', '#0B5E50'] : ['#EEF2F4', '#3D4E57'];
       h += row('Macrófitas', `${pos} de ${n} fecha${n > 1 ? 's' : ''} con detección (${mac[1]}\u00a0%)`, (c >= 1 ? PLANT() : '') + `<span class="chip" style="background:${mc[0]};color:${mc[1]}">${txt}</span>`);
     } else h += row('Macrófitas', '', chip(0, 'Sin dato'));
   }
@@ -592,8 +605,8 @@ let userMk = null;
 function showUser(ll, acc) {
   if (userMk) map.removeLayer(userMk);
   userMk = L.layerGroup([
-    L.circle(ll, { radius: acc || 0, color: '#0B2E40', weight: 1, fillColor: '#0E6E78', fillOpacity: .12, interactive: false, pane: 'markerPane' }),
-    L.circleMarker(ll, { radius: 7, color: '#fff', weight: 3, fillColor: '#0E6E78', fillOpacity: 1, interactive: false, pane: 'markerPane' })
+    L.circle(ll, { radius: acc || 0, color: '#E5539A', weight: 1, fillColor: '#F48FC0', fillOpacity: .15, interactive: false, pane: 'markerPane' }),
+    L.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#E5539A', fillOpacity: 1, interactive: false, pane: 'markerPane' })
   ]).addTo(map);
   map.flyTo(ll, Math.max(map.getZoom(), 12), { duration: .8 });
   const m = muniAt(ll.lat, ll.lng);
@@ -631,7 +644,7 @@ async function ultimaCarpeta() {
     BASE = BUCKET + carpeta;
     FICHA = (await fetch(BASE + 'ficha.geojson').then(r => r.json())).features[0].properties;
     document.getElementById('hdrSub').textContent = `Sentinel-2 ${fmtISO(FICHA.fecha_s2)} · Sentinel-3 ${fmtISO(FICHA.fecha_s3)} · últimos 15 días`;
-    mkLayers(); setBase('s2');
+    mkLayers(); syncLayers();
     await loadMunis();
     await loadLagunas();
   } catch (e) {
